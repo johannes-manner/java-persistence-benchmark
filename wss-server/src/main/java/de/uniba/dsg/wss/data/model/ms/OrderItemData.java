@@ -1,7 +1,6 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import java.time.LocalDateTime;
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
 
 /**
  * Defines {@link ProductData product}, quantity, supplying {@link WarehouseData warehouse} and
@@ -9,7 +8,7 @@ import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
  *
  * @author Benedikt Full
  */
-public class OrderItemData extends BaseData implements JacisCloneable<OrderItemData> {
+public class OrderItemData extends BaseData {
 
   private String orderId;
   private int number;
@@ -25,7 +24,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setOrderId(String orderId) {
-    checkWritable();
     this.orderId = orderId;
   }
 
@@ -34,7 +32,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setNumber(int number) {
-    checkWritable();
     this.number = number;
   }
 
@@ -43,7 +40,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setProductId(String productId) {
-    checkWritable();
     this.productId = productId;
   }
 
@@ -52,7 +48,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setSupplyingWarehouseId(String supplyingWarehouseId) {
-    checkWritable();
     this.supplyingWarehouseId = supplyingWarehouseId;
   }
 
@@ -61,7 +56,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setDeliveryDate(LocalDateTime deliveryDate) {
-    checkWritable();
     this.deliveryDate = deliveryDate;
   }
 
@@ -70,7 +64,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setQuantity(int quantity) {
-    checkWritable();
     this.quantity = quantity;
   }
 
@@ -79,7 +72,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setAmount(double amount) {
-    checkWritable();
     this.amount = amount;
   }
 
@@ -88,7 +80,6 @@ public class OrderItemData extends BaseData implements JacisCloneable<OrderItemD
   }
 
   public void setDistInfo(String distInfo) {
-    checkWritable();
     this.distInfo = distInfo;
   }
 

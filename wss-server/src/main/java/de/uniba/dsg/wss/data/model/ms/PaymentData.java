@@ -1,14 +1,13 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import java.time.LocalDateTime;
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
 
 /**
  * A payment made by a {@link CustomerData customer}.
  *
  * @author Benedikt Full
  */
-public class PaymentData extends BaseData implements JacisCloneable<PaymentData> {
+public class PaymentData extends BaseData{
 
   private String customerId;
   private String districtId;
@@ -21,7 +20,6 @@ public class PaymentData extends BaseData implements JacisCloneable<PaymentData>
   }
 
   public void setCustomerId(String customerId) {
-    checkWritable();
     this.customerId = customerId;
   }
 
@@ -30,7 +28,6 @@ public class PaymentData extends BaseData implements JacisCloneable<PaymentData>
   }
 
   public void setDistrictId(String districtId) {
-    checkWritable();
     this.districtId = districtId;
   }
 
@@ -39,7 +36,6 @@ public class PaymentData extends BaseData implements JacisCloneable<PaymentData>
   }
 
   public void setDate(LocalDateTime date) {
-    checkWritable();
     this.date = date;
   }
 
@@ -48,7 +44,6 @@ public class PaymentData extends BaseData implements JacisCloneable<PaymentData>
   }
 
   public void setAmount(double amount) {
-    checkWritable();
     this.amount = amount;
   }
 
@@ -57,7 +52,6 @@ public class PaymentData extends BaseData implements JacisCloneable<PaymentData>
   }
 
   public void setData(String data) {
-    checkWritable();
     this.data = data;
   }
 

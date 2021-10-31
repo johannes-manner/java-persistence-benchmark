@@ -1,15 +1,5 @@
 package de.uniba.dsg.wss;
 
-import de.uniba.dsg.wss.data.model.ms.CarrierData;
-import de.uniba.dsg.wss.data.model.ms.CustomerData;
-import de.uniba.dsg.wss.data.model.ms.DistrictData;
-import de.uniba.dsg.wss.data.model.ms.EmployeeData;
-import de.uniba.dsg.wss.data.model.ms.OrderData;
-import de.uniba.dsg.wss.data.model.ms.OrderItemData;
-import de.uniba.dsg.wss.data.model.ms.PaymentData;
-import de.uniba.dsg.wss.data.model.ms.ProductData;
-import de.uniba.dsg.wss.data.model.ms.StockData;
-import de.uniba.dsg.wss.data.model.ms.WarehouseData;
 import de.uniba.dsg.wss.util.Stopwatch;
 import one.microstream.afs.nio.types.NioFileSystem;
 import one.microstream.storage.embedded.types.EmbeddedStorageFoundation;
@@ -19,11 +9,6 @@ import one.microstream.storage.types.StorageChannelCountProvider;
 import one.microstream.storage.types.StorageConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jacis.container.JacisContainer;
-import org.jacis.container.JacisObjectTypeSpec;
-import org.jacis.extension.persistence.microstream.MicrostreamPersistenceAdapter;
-import org.jacis.extension.persistence.microstream.MicrostreamStorage;
-import org.jacis.store.JacisStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -87,105 +72,5 @@ public class MsConfiguration {
     LOG.info("Started MicroStream storage manager, took {}", stopwatch.getDuration());
 
     return storageManager;
-  }
-
-  @Bean
-  public MicrostreamStorage microstreamStorage(EmbeddedStorageManager storageManager) {
-    return new MicrostreamStorage(storageManager);
-  }
-
-  @Bean
-  public JacisContainer jacisContainer() {
-    return new JacisContainer();
-  }
-
-  @Bean
-  public JacisStore<String, CarrierData> carrierStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, CarrierData, CarrierData> carrierTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, CarrierData.class);
-    carrierTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(carrierTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, ProductData> productStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, ProductData, ProductData> productTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, ProductData.class);
-    productTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(productTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, WarehouseData> warehouseStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, WarehouseData, WarehouseData> warehouseTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, WarehouseData.class);
-    warehouseTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(warehouseTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, StockData> stockStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, StockData, StockData> stockTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, StockData.class);
-    stockTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(stockTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, DistrictData> districtStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, DistrictData, DistrictData> districtTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, DistrictData.class);
-    districtTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(districtTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, CustomerData> customerStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, CustomerData, CustomerData> customerTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, CustomerData.class);
-    customerTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(customerTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, OrderData> orderStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, OrderData, OrderData> orderTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, OrderData.class);
-    orderTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(orderTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, OrderItemData> orderItemStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, OrderItemData, OrderItemData> orderItemTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, OrderItemData.class);
-    orderItemTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(orderItemTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, PaymentData> paymentStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, PaymentData, PaymentData> paymentTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, PaymentData.class);
-    paymentTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(paymentTypeSpec).getStore();
-  }
-
-  @Bean
-  public JacisStore<String, EmployeeData> employeeStore(
-      JacisContainer container, MicrostreamStorage storage) {
-    JacisObjectTypeSpec<String, EmployeeData, EmployeeData> employeeTypeSpec =
-        new JacisObjectTypeSpec<>(String.class, EmployeeData.class);
-    employeeTypeSpec.setPersistenceAdapter(new MicrostreamPersistenceAdapter<>(storage));
-    return container.createStore(employeeTypeSpec).getStore();
   }
 }

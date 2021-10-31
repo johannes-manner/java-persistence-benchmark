@@ -1,14 +1,12 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * A carrier is responsible for fulfilling {@link OrderData orders} by delivering the ordered items
  * to the {@link CustomerData customer}.
  *
  * @author Benedikt Full
  */
-public class CarrierData extends BaseData implements JacisCloneable<CarrierData> {
+public class CarrierData extends BaseData {
 
   private String name;
   private String phoneNumber;
@@ -19,7 +17,6 @@ public class CarrierData extends BaseData implements JacisCloneable<CarrierData>
   }
 
   public void setName(String name) {
-    checkWritable();
     this.name = name;
   }
 
@@ -28,7 +25,6 @@ public class CarrierData extends BaseData implements JacisCloneable<CarrierData>
   }
 
   public void setPhoneNumber(String phoneNumber) {
-    checkWritable();
     this.phoneNumber = phoneNumber;
   }
 
@@ -37,7 +33,6 @@ public class CarrierData extends BaseData implements JacisCloneable<CarrierData>
   }
 
   public void setAddress(AddressData address) {
-    checkWritable();
     this.address = address;
   }
 

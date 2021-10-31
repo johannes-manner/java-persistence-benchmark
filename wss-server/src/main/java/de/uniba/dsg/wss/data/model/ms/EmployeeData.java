@@ -1,14 +1,12 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * An employee of the wholesale supplier. Employees are the user group meant to perform the business
  * transactions, i.e. create new orders, or add new payments.
  *
  * @author Benedikt Full
  */
-public class EmployeeData extends PersonData implements JacisCloneable<EmployeeData> {
+public class EmployeeData extends PersonData {
 
   private String title;
   private String username;
@@ -23,16 +21,15 @@ public class EmployeeData extends PersonData implements JacisCloneable<EmployeeD
   }
 
   public void setTitle(String title) {
-    checkWritable();
     this.title = title;
   }
+
 
   public String getUsername() {
     return username;
   }
 
   public void setUsername(String username) {
-    checkWritable();
     this.username = username;
   }
 
@@ -41,7 +38,6 @@ public class EmployeeData extends PersonData implements JacisCloneable<EmployeeD
   }
 
   public void setPassword(String password) {
-    checkWritable();
     this.password = password;
   }
 
@@ -50,7 +46,6 @@ public class EmployeeData extends PersonData implements JacisCloneable<EmployeeD
   }
 
   public void setDistrictId(String districtId) {
-    checkWritable();
     this.districtId = districtId;
   }
 

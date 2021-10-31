@@ -1,7 +1,5 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * A district is one of ten areas supplied by a specific {@link WarehouseData warehouse}. Each
  * district is administered by a single {@link EmployeeData employee} and has 3000 {@link
@@ -9,7 +7,7 @@ import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
  *
  * @author Benedikt Full
  */
-public class DistrictData extends BaseData implements JacisCloneable<DistrictData> {
+public class DistrictData extends BaseData {
 
   private String warehouseId;
   private String name;
@@ -17,12 +15,12 @@ public class DistrictData extends BaseData implements JacisCloneable<DistrictDat
   private double salesTax;
   private double yearToDateBalance;
 
+
   public String getWarehouseId() {
     return warehouseId;
   }
 
   public void setWarehouseId(String warehouseId) {
-    checkWritable();
     this.warehouseId = warehouseId;
   }
 
@@ -31,7 +29,6 @@ public class DistrictData extends BaseData implements JacisCloneable<DistrictDat
   }
 
   public void setName(String name) {
-    checkWritable();
     this.name = name;
   }
 
@@ -40,7 +37,6 @@ public class DistrictData extends BaseData implements JacisCloneable<DistrictDat
   }
 
   public void setAddress(AddressData address) {
-    checkWritable();
     this.address = address;
   }
 
@@ -49,7 +45,6 @@ public class DistrictData extends BaseData implements JacisCloneable<DistrictDat
   }
 
   public void setSalesTax(double salesTax) {
-    checkWritable();
     this.salesTax = salesTax;
   }
 
@@ -58,7 +53,6 @@ public class DistrictData extends BaseData implements JacisCloneable<DistrictDat
   }
 
   public void setYearToDateBalance(double yearToDateBalance) {
-    checkWritable();
     this.yearToDateBalance = yearToDateBalance;
   }
 

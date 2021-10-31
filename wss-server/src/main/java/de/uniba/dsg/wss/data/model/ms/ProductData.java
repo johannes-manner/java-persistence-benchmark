@@ -1,13 +1,11 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * A product of the wholesale supplier.
  *
  * @author Benedikt Full
  */
-public class ProductData extends BaseData implements JacisCloneable<ProductData> {
+public class ProductData extends BaseData{
 
   private String imagePath;
   private String name;
@@ -19,7 +17,6 @@ public class ProductData extends BaseData implements JacisCloneable<ProductData>
   }
 
   public void setImagePath(String imagePath) {
-    checkWritable();
     this.imagePath = imagePath;
   }
 
@@ -28,7 +25,6 @@ public class ProductData extends BaseData implements JacisCloneable<ProductData>
   }
 
   public void setName(String name) {
-    checkWritable();
     this.name = name;
   }
 
@@ -37,7 +33,6 @@ public class ProductData extends BaseData implements JacisCloneable<ProductData>
   }
 
   public void setPrice(double price) {
-    checkWritable();
     this.price = price;
   }
 
@@ -46,7 +41,6 @@ public class ProductData extends BaseData implements JacisCloneable<ProductData>
   }
 
   public void setData(String data) {
-    checkWritable();
     this.data = data;
   }
 

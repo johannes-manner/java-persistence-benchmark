@@ -1,14 +1,12 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * The available amount of a specific {@link ProductData product} at some {@link WarehouseData
  * warehouse}.
  *
  * @author Benedikt Full
  */
-public class StockData extends BaseData implements JacisCloneable<StockData> {
+public class StockData extends BaseData{
 
   private String productId;
   private int quantity;
@@ -33,7 +31,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setProductId(String productId) {
-    checkWritable();
     this.productId = productId;
   }
 
@@ -42,7 +39,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setQuantity(int quantity) {
-    checkWritable();
     this.quantity = quantity;
   }
 
@@ -51,7 +47,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setWarehouseId(String warehouseId) {
-    checkWritable();
     this.warehouseId = warehouseId;
   }
 
@@ -60,7 +55,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setYearToDateBalance(double yearToDateBalance) {
-    checkWritable();
     this.yearToDateBalance = yearToDateBalance;
   }
 
@@ -69,7 +63,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setOrderCount(int orderCount) {
-    checkWritable();
     this.orderCount = orderCount;
   }
 
@@ -78,7 +71,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setRemoteCount(int remoteCount) {
-    checkWritable();
     this.remoteCount = remoteCount;
   }
 
@@ -87,7 +79,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setData(String data) {
-    checkWritable();
     this.data = data;
   }
 
@@ -96,7 +87,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist01(String dist01) {
-    checkWritable();
     this.dist01 = dist01;
   }
 
@@ -105,7 +95,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist02(String dist02) {
-    checkWritable();
     this.dist02 = dist02;
   }
 
@@ -114,7 +103,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist03(String dist03) {
-    checkWritable();
     this.dist03 = dist03;
   }
 
@@ -123,7 +111,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist04(String dist04) {
-    checkWritable();
     this.dist04 = dist04;
   }
 
@@ -132,7 +119,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist05(String dist05) {
-    checkWritable();
     this.dist05 = dist05;
   }
 
@@ -141,7 +127,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist06(String dist06) {
-    checkWritable();
     this.dist06 = dist06;
   }
 
@@ -150,7 +135,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist07(String dist07) {
-    checkWritable();
     this.dist07 = dist07;
   }
 
@@ -159,7 +143,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist08(String dist08) {
-    checkWritable();
     this.dist08 = dist08;
   }
 
@@ -168,7 +151,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist09(String dist09) {
-    checkWritable();
     this.dist09 = dist09;
   }
 
@@ -177,7 +159,6 @@ public class StockData extends BaseData implements JacisCloneable<StockData> {
   }
 
   public void setDist10(String dist10) {
-    checkWritable();
     this.dist10 = dist10;
   }
 

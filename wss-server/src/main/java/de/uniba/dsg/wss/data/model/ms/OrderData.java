@@ -1,7 +1,6 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import java.time.LocalDateTime;
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
 
 /**
  * An order issued by a {@link CustomerData customer} for a certain amount of {@link ProductData
@@ -10,7 +9,7 @@ import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
  * @see OrderItemData
  * @author Benedikt Full
  */
-public class OrderData extends BaseData implements JacisCloneable<OrderData> {
+public class OrderData extends BaseData{
 
   private String districtId;
   private String customerId;
@@ -25,7 +24,6 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setDistrictId(String districtId) {
-    checkWritable();
     this.districtId = districtId;
   }
 
@@ -34,7 +32,6 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setCustomerId(String customerId) {
-    checkWritable();
     this.customerId = customerId;
   }
 
@@ -43,7 +40,6 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setCarrierId(String carrierId) {
-    checkWritable();
     this.carrierId = carrierId;
   }
 
@@ -52,16 +48,15 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setEntryDate(LocalDateTime entryDate) {
-    checkWritable();
     this.entryDate = entryDate;
   }
+
 
   public int getItemCount() {
     return itemCount;
   }
 
   public void setItemCount(int itemCount) {
-    checkWritable();
     this.itemCount = itemCount;
   }
 
@@ -70,7 +65,6 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setAllLocal(boolean allLocal) {
-    checkWritable();
     this.allLocal = allLocal;
   }
 
@@ -79,7 +73,6 @@ public class OrderData extends BaseData implements JacisCloneable<OrderData> {
   }
 
   public void setFulfilled(boolean fulfilled) {
-    checkWritable();
     this.fulfilled = fulfilled;
   }
 

@@ -1,14 +1,13 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import java.time.LocalDateTime;
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
 
 /**
  * A customer of the wholesale supplier.
  *
  * @author Benedikt Full
  */
-public class CustomerData extends PersonData implements JacisCloneable<CustomerData> {
+public class CustomerData extends PersonData {
 
   private String warehouseId;
   private String districtId;
@@ -27,7 +26,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setWarehouseId(String warehouseId) {
-    checkWritable();
     this.warehouseId = warehouseId;
   }
 
@@ -36,7 +34,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setDistrictId(String districtId) {
-    checkWritable();
     this.districtId = districtId;
   }
 
@@ -45,7 +42,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setSince(LocalDateTime since) {
-    checkWritable();
     this.since = since;
   }
 
@@ -54,7 +50,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setCredit(String credit) {
-    checkWritable();
     this.credit = credit;
   }
 
@@ -63,7 +58,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setCreditLimit(double creditLimit) {
-    checkWritable();
     this.creditLimit = creditLimit;
   }
 
@@ -72,7 +66,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setDiscount(double discount) {
-    checkWritable();
     this.discount = discount;
   }
 
@@ -81,7 +74,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setBalance(double balance) {
-    checkWritable();
     this.balance = balance;
   }
 
@@ -90,7 +82,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setYearToDatePayment(double yearToDatePayment) {
-    checkWritable();
     this.yearToDatePayment = yearToDatePayment;
   }
 
@@ -99,7 +90,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setPaymentCount(int paymentCount) {
-    checkWritable();
     this.paymentCount = paymentCount;
   }
 
@@ -108,7 +98,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setDeliveryCount(int deliveryCount) {
-    checkWritable();
     this.deliveryCount = deliveryCount;
   }
 
@@ -117,7 +106,6 @@ public class CustomerData extends PersonData implements JacisCloneable<CustomerD
   }
 
   public void setData(String data) {
-    checkWritable();
     this.data = data;
   }
 

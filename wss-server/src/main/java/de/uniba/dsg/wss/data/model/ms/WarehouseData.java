@@ -1,13 +1,11 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import org.jacis.plugin.objectadapter.cloning.JacisCloneable;
-
 /**
  * A warehouse of the wholesale supplier.
  *
  * @author Benedikt Full
  */
-public class WarehouseData extends BaseData implements JacisCloneable<WarehouseData> {
+public class WarehouseData extends BaseData{
 
   private String name;
   private AddressData address;
@@ -19,7 +17,6 @@ public class WarehouseData extends BaseData implements JacisCloneable<WarehouseD
   }
 
   public void setName(String name) {
-    checkWritable();
     this.name = name;
   }
 
@@ -28,7 +25,6 @@ public class WarehouseData extends BaseData implements JacisCloneable<WarehouseD
   }
 
   public void setAddress(AddressData address) {
-    checkWritable();
     this.address = address;
   }
 
@@ -37,7 +33,6 @@ public class WarehouseData extends BaseData implements JacisCloneable<WarehouseD
   }
 
   public void setSalesTax(double salesTax) {
-    checkWritable();
     this.salesTax = salesTax;
   }
 
@@ -46,7 +41,6 @@ public class WarehouseData extends BaseData implements JacisCloneable<WarehouseD
   }
 
   public void setYearToDateBalance(double yearToDateBalance) {
-    checkWritable();
     this.yearToDateBalance = yearToDateBalance;
   }
 
