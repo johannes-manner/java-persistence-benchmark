@@ -1,5 +1,6 @@
 package de.uniba.dsg.wss;
 
+import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
 import de.uniba.dsg.wss.util.Stopwatch;
 import one.microstream.afs.nio.types.NioFileSystem;
 import one.microstream.storage.embedded.types.EmbeddedStorageFoundation;
@@ -39,6 +40,11 @@ public class MsConfiguration {
   @Autowired
   public MsConfiguration(Environment environment) {
     this.environment = environment;
+  }
+
+  @Bean
+  public MsDataRoot createDataRoot(){
+    return new MsDataRoot();
   }
 
   @Bean

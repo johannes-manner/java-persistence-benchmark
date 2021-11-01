@@ -1,5 +1,8 @@
 package de.uniba.dsg.wss.data.model.ms;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A district is one of ten areas supplied by a specific {@link WarehouseData warehouse}. Each
  * district is administered by a single {@link EmployeeData employee} and has 3000 {@link
@@ -9,51 +12,58 @@ package de.uniba.dsg.wss.data.model.ms;
  */
 public class DistrictData extends BaseData {
 
-  private String warehouseId;
-  private String name;
-  private AddressData address;
-  private double salesTax;
-  private double yearToDateBalance;
+  private final WarehouseData warehouseRef;
 
+  private final String name;
+  private final AddressData address;
+  private final double salesTax;
+  private final double yearToDateBalance;
 
-  public String getWarehouseId() {
-    return warehouseId;
+  private final List<CustomerData> customerRefs;
+  private final List<OrderData> orderRefs;
+
+  public DistrictData(String id,
+                      WarehouseData warehouse,
+                      String name,
+                      AddressData address,
+                      double salesTax,
+                      double yearToDateBalance) {
+    super(id);
+    this.warehouseRef = warehouse;
+    this.name = name;
+    this.address = address;
+    this.salesTax = salesTax;
+    this.yearToDateBalance = yearToDateBalance;
+    this.customerRefs = new ArrayList<>();
+    this.orderRefs = new ArrayList<>();
   }
 
-  public void setWarehouseId(String warehouseId) {
-    this.warehouseId = warehouseId;
+  public WarehouseData getWarehouse() {
+    return warehouseRef;
   }
 
   public String getName() {
     return name;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public AddressData getAddress() {
     return address;
-  }
-
-  public void setAddress(AddressData address) {
-    this.address = address;
   }
 
   public double getSalesTax() {
     return salesTax;
   }
 
-  public void setSalesTax(double salesTax) {
-    this.salesTax = salesTax;
-  }
-
   public double getYearToDateBalance() {
     return yearToDateBalance;
   }
 
-  public void setYearToDateBalance(double yearToDateBalance) {
-    this.yearToDateBalance = yearToDateBalance;
+  public List<CustomerData> getCustomers(){
+    return this.customerRefs;
+  }
+
+  public List<OrderData> getOrders(){
+    return this.orderRefs;
   }
 
   @Override

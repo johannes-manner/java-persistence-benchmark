@@ -9,50 +9,34 @@ import java.time.LocalDateTime;
  */
 public class PaymentData extends BaseData{
 
-  private String customerId;
-  private String districtId;
+  private CustomerData customerRef;
+
   private LocalDateTime date;
   private double amount;
   private String data;
 
-  public String getCustomerId() {
-    return customerId;
+  public PaymentData(String id, CustomerData customerRef, LocalDateTime date, double amount, String data) {
+    super(id);
+    this.customerRef = customerRef;
+    this.date = date;
+    this.amount = amount;
+    this.data = data;
   }
 
-  public void setCustomerId(String customerId) {
-    this.customerId = customerId;
-  }
-
-  public String getDistrictId() {
-    return districtId;
-  }
-
-  public void setDistrictId(String districtId) {
-    this.districtId = districtId;
+  public CustomerData getCustomerRef() {
+    return customerRef;
   }
 
   public LocalDateTime getDate() {
     return date;
   }
 
-  public void setDate(LocalDateTime date) {
-    this.date = date;
-  }
-
   public double getAmount() {
     return amount;
   }
 
-  public void setAmount(double amount) {
-    this.amount = amount;
-  }
-
   public String getData() {
     return data;
-  }
-
-  public void setData(String data) {
-    this.data = data;
   }
 
   @Override

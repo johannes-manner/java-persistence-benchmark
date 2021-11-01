@@ -1,0 +1,23 @@
+package de.uniba.dsg.wss.data.model.ms;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class MsDataRoot {
+
+    private final Map<String, WarehouseData> warehouses;
+    private final Map<String, EmployeeData> employees;
+
+    public MsDataRoot(){
+        warehouses = new ConcurrentHashMap<>();
+        employees = new ConcurrentHashMap<>();
+    }
+
+    public Map<String, WarehouseData> getWarehouses() {
+        return warehouses;
+    }
+
+    public Map<String, EmployeeData> getEmployees(){
+        return employees;
+    }
+}

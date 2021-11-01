@@ -1,35 +1,18 @@
 package de.uniba.dsg.wss.data.gen.ms;
 
 import de.uniba.dsg.wss.data.gen.jpa.JpaDataGenerator;
-import de.uniba.dsg.wss.data.model.jpa.AddressEmbeddable;
-import de.uniba.dsg.wss.data.model.jpa.CarrierEntity;
-import de.uniba.dsg.wss.data.model.jpa.CustomerEntity;
-import de.uniba.dsg.wss.data.model.jpa.DistrictEntity;
-import de.uniba.dsg.wss.data.model.jpa.EmployeeEntity;
-import de.uniba.dsg.wss.data.model.jpa.OrderEntity;
-import de.uniba.dsg.wss.data.model.jpa.OrderItemEntity;
-import de.uniba.dsg.wss.data.model.jpa.PaymentEntity;
-import de.uniba.dsg.wss.data.model.jpa.ProductEntity;
-import de.uniba.dsg.wss.data.model.jpa.StockEntity;
-import de.uniba.dsg.wss.data.model.jpa.WarehouseEntity;
-import de.uniba.dsg.wss.data.model.ms.AddressData;
-import de.uniba.dsg.wss.data.model.ms.CarrierData;
-import de.uniba.dsg.wss.data.model.ms.CustomerData;
-import de.uniba.dsg.wss.data.model.ms.DistrictData;
-import de.uniba.dsg.wss.data.model.ms.EmployeeData;
-import de.uniba.dsg.wss.data.model.ms.OrderData;
-import de.uniba.dsg.wss.data.model.ms.OrderItemData;
-import de.uniba.dsg.wss.data.model.ms.PaymentData;
-import de.uniba.dsg.wss.data.model.ms.ProductData;
-import de.uniba.dsg.wss.data.model.ms.StockData;
-import de.uniba.dsg.wss.data.model.ms.WarehouseData;
+import de.uniba.dsg.wss.data.model.jpa.*;
+import de.uniba.dsg.wss.data.model.ms.*;
+import de.uniba.dsg.wss.data.model.ms.v2.StockData;
 import de.uniba.dsg.wss.util.Stopwatch;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Converts a JPA data model to a MicroStream data model. Converting an existing model ensures that
@@ -46,14 +29,15 @@ public class JpaToMsConverter {
   private final List<CarrierEntity> carrierEntities;
   private final List<WarehouseEntity> warehouseEntities;
   private final List<EmployeeEntity> employeeEntities;
-  private List<ProductData> products;
-  private List<CarrierData> carriers;
-  private List<WarehouseData> warehouses;
+
+  private Map<String, ProductData> products;
+  private Map<String, CarrierData> carriers;
+  private Map<String, WarehouseData> warehouses;
   private List<StockData> stocks;
-  private List<DistrictData> districts;
-  private List<EmployeeData> employees;
-  private List<CustomerData> customers;
-  private List<OrderData> orders;
+  private Map<String, DistrictData> districts;
+  private Map<String, EmployeeData> employees;
+  private Map<String, CustomerData> customers;
+  private Map<String, OrderData> orders;
   private List<OrderItemData> orderItems;
   private List<PaymentData> payments;
 
@@ -78,12 +62,15 @@ public class JpaToMsConverter {
 
   public void convert() {
     Stopwatch stopwatch = new Stopwatch(true);
+
+
     products = convertProducts(productEntities);
     carriers = convertCarriers(carrierEntities);
-    warehouses = convertWarehouses(warehouseEntities, products, carriers);
+    warehouses = convertWarehouses(warehouseEntities);
     stocks = convertStocks(warehouseEntities);
+
     districts = convertDistricts(warehouseEntities);
-    employees = convertEmployees(employeeEntities, warehouses);
+    employees = convertEmployees(employeeEntities);
     customers = convertCustomers(warehouseEntities);
     orders = convertOrders(warehouseEntities);
     orderItems = convertOrderItems(warehouseEntities);
@@ -92,35 +79,124 @@ public class JpaToMsConverter {
     LOG.info("Converted model data to MicroStream data, took {}", stopwatch.getDuration());
   }
 
-  public List<ProductData> getProducts() {
+  public Map<String, ProductData> getProducts() {
     return products;
   }
 
-  public List<CarrierData> getCarriers() {
+  public Map<String, CarrierData> getCarriers() {
     return carriers;
   }
 
-  public List<WarehouseData> getWarehouses() {
+  // UNCHANGED TO V1.0
+
+  private Map<String, ProductData> convertProducts(List<ProductEntity> ps) {
+    Map<String, ProductData> products = new HashMap<>();
+    for (ProductEntity p : ps) {
+      ProductData product = new ProductData(p.getId(),
+              p.getImagePath(),
+              p.getName(),
+              p.getPrice(),
+              p.getData());
+
+      products.put(product.getId(), product);
+    }
+    LOG.debug("Converted {} products", products.size());
+    return products;
+  }
+
+  private Map<String, CarrierData> convertCarriers(List<CarrierEntity> cs) {
+    Map<String, CarrierData> carriers = new HashMap<>();
+    for (CarrierEntity c : cs) {
+      CarrierData carrier = new CarrierData(c.getId(),
+              c.getName(),
+              c.getPhoneNumber(),
+              address(c.getAddress()));
+
+      carriers.put(carrier.getId(), carrier);
+    }
+    LOG.debug("Converted {} carriers", carriers.size());
+    return carriers;
+  }
+
+  // NEW
+  private Map<String, WarehouseData> convertWarehouses(List<WarehouseEntity> ws) {
+    Map<String, WarehouseData> warehouses = new HashMap<>();
+    for (WarehouseEntity w : ws) {
+      WarehouseData warehouse = new WarehouseData(w.getId(), w.getName(), address(w.getAddress()));
+
+      // NEW relaxing the concurrency thing here, since at the data generation step, the procedure is implemented single threaded
+      warehouse.updateSalesTax(w.getSalesTax(),w.getSalesTax());
+      warehouse.updateYearToDateBalance(w.getYearToDateBalance(),w.getYearToDateBalance());
+      warehouses.put(warehouse.getId(), warehouse);
+
+    }
+    LOG.debug("Converted {} warehouses", warehouses.size());
     return warehouses;
   }
+
+  /**
+   * Districts are now also added to the warehouse (bidirectional relationship)
+   * TODO rethink - quite complicated ...
+   *
+   * @param ws
+   * @return
+   */
+  private Map<String, DistrictData> convertDistricts(List<WarehouseEntity> ws) {
+    Map<String, DistrictData> districts = new HashMap<>();
+    for (WarehouseEntity w : ws) {
+      WarehouseData warehouse = this.warehouses.get(w.getId());
+      List<DistrictData> districtsForWarehouse = warehouse.getDistricts();
+
+      for (DistrictEntity d : w.getDistricts()) {
+        // referential integrity...
+        DistrictData districtData = district(d,warehouse);
+        districtsForWarehouse.add(districtData);
+
+        districts.put(districtData.getId(), districtData);
+      }
+    }
+    LOG.debug("Converted {} districts", districts.size());
+    return districts;
+  }
+
+  public Map<String,WarehouseData> getWarehousesMap() {
+    return warehouses;
+  }
+
+  private List<StockData> convertStocks(List<WarehouseEntity> ws) {
+    List<StockData> stocks = new ArrayList();
+    for(WarehouseEntity warehouseEntity : ws) {
+      WarehouseData warehouse = this.warehouses.get(warehouseEntity.getId());
+      warehouse.getStocks().addAll(
+              ws.stream()
+              .flatMap(w -> w.getStocks().stream())
+              .map(s -> this.stock(s, warehouse))
+              .collect(Collectors.toList()));
+    }
+
+    LOG.debug("Converted {} stocks", stocks.size());
+    return stocks;
+  }
+
+
 
   public List<StockData> getStocks() {
     return stocks;
   }
 
-  public List<DistrictData> getDistricts() {
+  public Map<String, DistrictData> getDistricts() {
     return districts;
   }
 
-  public List<EmployeeData> getEmployees() {
+  public Map<String, EmployeeData> getEmployees() {
     return employees;
   }
 
-  public List<CustomerData> getCustomers() {
+  public Map<String, CustomerData> getCustomers() {
     return customers;
   }
 
-  public List<OrderData> getOrders() {
+  public Map<String, OrderData> getOrders() {
     return orders;
   }
 
@@ -132,119 +208,52 @@ public class JpaToMsConverter {
     return payments;
   }
 
-  private List<ProductData> convertProducts(List<ProductEntity> ps) {
-    List<ProductData> products = new ArrayList<>(ps.size());
-    for (ProductEntity p : ps) {
-      ProductData product = new ProductData();
-      product.setId(p.getId());
-      product.setImagePath(p.getImagePath());
-      product.setName(p.getName());
-      product.setPrice(p.getPrice());
-      product.setData(p.getData());
-      products.add(product);
-    }
-    LOG.debug("Converted {} products", products.size());
-    return products;
-  }
 
-  private List<CarrierData> convertCarriers(List<CarrierEntity> cs) {
-    List<CarrierData> carriers = new ArrayList<>(cs.size());
-    for (CarrierEntity c : cs) {
-      CarrierData carrier = new CarrierData();
-      carrier.setId(c.getId());
-      carrier.setName(c.getName());
-      carrier.setPhoneNumber(c.getPhoneNumber());
-      carrier.setAddress(address(c.getAddress()));
-      carriers.add(carrier);
-    }
-    LOG.debug("Converted {} carriers", carriers.size());
-    return carriers;
-  }
 
-  private List<WarehouseData> convertWarehouses(
-      List<WarehouseEntity> ws, List<ProductData> products, List<CarrierData> carriers) {
-    List<WarehouseData> warehouses = new ArrayList<>(ws.size());
-    for (WarehouseEntity w : ws) {
-      WarehouseData warehouse = new WarehouseData();
-      warehouse.setId(w.getId());
-      warehouse.setName(w.getName());
-      warehouse.setAddress(address(w.getAddress()));
-      warehouse.setSalesTax(w.getSalesTax());
-      warehouse.setYearToDateBalance(w.getYearToDateBalance());
-      warehouses.add(warehouse);
-    }
-    LOG.debug("Converted {} warehouses", warehouses.size());
-    return warehouses;
-  }
-
-  private List<StockData> convertStocks(List<WarehouseEntity> ws) {
-    List<StockData> stocks =
-        ws.stream()
-            .flatMap(w -> w.getStocks().stream())
-            .map(JpaToMsConverter::stock)
-            .collect(Collectors.toList());
-    LOG.debug("Converted {} stocks", stocks.size());
-    return stocks;
-  }
-
-  private static StockData stock(StockEntity s) {
-    StockData stock = new StockData();
-    stock.setId(s.getId());
-    stock.setWarehouseId(s.getWarehouse().getId());
-    stock.setProductId(s.getProduct().getId());
-    stock.setData(s.getData());
-    stock.setQuantity(s.getQuantity());
-    stock.setDist01(s.getDist01());
-    stock.setDist02(s.getDist02());
-    stock.setDist03(s.getDist03());
-    stock.setDist04(s.getDist04());
-    stock.setDist05(s.getDist05());
-    stock.setDist06(s.getDist06());
-    stock.setDist07(s.getDist07());
-    stock.setDist08(s.getDist08());
-    stock.setDist09(s.getDist09());
-    stock.setDist10(s.getDist10());
-    stock.setOrderCount(s.getOrderCount());
-    stock.setRemoteCount(s.getRemoteCount());
-    stock.setOrderCount(s.getOrderCount());
+  private StockData stock(StockEntity s, WarehouseData warehouse) {
+    StockData stock = new StockData(s.getId(),
+            warehouse,
+            this.products.get(s.getProduct().getId()),
+            s.getQuantity(),
+            s.getYearToDateBalance(),
+            s.getOrderCount(),
+            s.getRemoteCount(),
+            s.getData(),
+            s.getDist01(),
+            s.getDist02(),
+            s.getDist03(),
+            s.getDist04(),
+            s.getDist05(),
+            s.getDist06(),
+            s.getDist07(),
+            s.getDist08(),
+            s.getDist09(),
+            s.getDist10());
     return stock;
   }
 
-  private List<DistrictData> convertDistricts(List<WarehouseEntity> ws) {
-    List<DistrictData> districts = new ArrayList<>();
-    for (WarehouseEntity w : ws) {
-      for (DistrictEntity d : w.getDistricts()) {
-        districts.add(district(d, w));
-      }
-    }
-    LOG.debug("Converted {} districts", districts.size());
-    return districts;
-  }
-
-  private List<EmployeeData> convertEmployees(
-      List<EmployeeEntity> es, List<WarehouseData> warehouses) {
-    List<EmployeeData> employees = new ArrayList<>(es.size());
+  private Map<String, EmployeeData> convertEmployees(List<EmployeeEntity> es) {
+    Map<String, EmployeeData> employees = new HashMap<>();
     for (EmployeeEntity e : es) {
-      EmployeeData employee = new EmployeeData();
-      employee.setId(e.getId());
-      employee.setAddress(address(e.getAddress()));
-      employee.setFirstName(e.getFirstName());
-      employee.setMiddleName(e.getMiddleName());
-      employee.setLastName(e.getLastName());
-      employee.setPhoneNumber(e.getPhoneNumber());
-      employee.setEmail(e.getEmail());
-      employee.setUsername(e.getUsername());
-      employee.setPassword(e.getPassword());
-      employee.setTitle(e.getTitle());
-      employee.setDistrictId(e.getDistrict().getId());
-      employee.setDistrictWarehouseId(e.getDistrict().getWarehouse().getId());
-      employees.add(employee);
+      EmployeeData employee = new EmployeeData(e.getId(),
+              e.getFirstName(),
+              e.getMiddleName(),
+              e.getLastName(),
+              address(e.getAddress()),
+              e.getPhoneNumber(),
+              e.getEmail(),
+              e.getTitle(),
+              e.getUsername(),
+              e.getPassword(),
+              this.districts.get(e.getDistrict().getId()));
+
+      employees.put(employee.getUsername(), employee);
     }
     LOG.debug("Converted {} employees", employees.size());
     return employees;
   }
 
-  private List<CustomerData> convertCustomers(List<WarehouseEntity> ws) {
+  private Map<String, CustomerData> convertCustomers(List<WarehouseEntity> ws) {
     List<CustomerEntity> cs = new ArrayList<>();
     for (WarehouseEntity w : ws) {
       for (DistrictEntity d : w.getDistricts()) {
@@ -254,97 +263,89 @@ public class JpaToMsConverter {
     return customers(cs);
   }
 
-  private static List<CustomerData> customers(List<CustomerEntity> cs) {
-    List<CustomerData> customers = new ArrayList<>(cs.size());
+  private Map<String, CustomerData> customers(List<CustomerEntity> cs) {
+    Map<String, CustomerData> customers = new HashMap<>();
     for (CustomerEntity c : cs) {
-      CustomerData customer = new CustomerData();
-      customer.setId(c.getId());
-      customer.setAddress(address(c.getAddress()));
-      customer.setFirstName(c.getFirstName());
-      customer.setMiddleName(c.getMiddleName());
-      customer.setLastName(c.getLastName());
-      customer.setPhoneNumber(c.getPhoneNumber());
-      customer.setEmail(c.getEmail());
-      customer.setCredit(c.getCredit());
-      customer.setCreditLimit(c.getCreditLimit());
-      customer.setBalance(c.getBalance());
-      customer.setDiscount(c.getDiscount());
-      customer.setData(c.getData());
-      customer.setPaymentCount(c.getPaymentCount());
-      customer.setYearToDatePayment(c.getYearToDatePayment());
-      customer.setPaymentCount(c.getPaymentCount());
-      customer.setDeliveryCount(c.getDeliveryCount());
-      customer.setDistrictId(c.getDistrict().getId());
-      customers.add(customer);
+      CustomerData customer = new CustomerData(c.getId(),
+              c.getFirstName(),
+              c.getMiddleName(),
+              c.getLastName(),
+              address(c.getAddress()),
+              c.getPhoneNumber(),
+              c.getEmail(),
+              // referential integrity
+              this.districts.get(c.getDistrict().getId()),
+              c.getSince(),
+              c.getCredit(),
+              c.getCreditLimit(),
+              c.getDiscount(),
+              c.getBalance(),
+              c.getYearToDatePayment(),
+              c.getPaymentCount(),
+              c.getDeliveryCount(),
+              c.getData());
+
+      customers.put(customer.getId(), customer);
+      // referential integrity
+      this.districts.get(customer.getDistrict().getId()).getCustomers().add(customer);
     }
     LOG.debug("Converted {} customers", customers.size());
     return customers;
   }
 
-  private List<OrderData> convertOrders(List<WarehouseEntity> ws) {
-    List<OrderEntity> os = new ArrayList<>();
+  private Map<String, OrderData> convertOrders(List<WarehouseEntity> ws) {
+    Map<String, OrderData> orders = new HashMap<>();
     for (WarehouseEntity w : ws) {
       for (DistrictEntity d : w.getDistricts()) {
-        os.addAll(d.getOrders());
+        DistrictData district = this.districts.get(d.getId());
+        for(OrderEntity o : d.getOrders()) {
+          OrderData order = new OrderData(o.getId(),
+                  district,
+                  // referential integrity
+                  this.customers.get(o.getCustomer().getId()),
+                  // referential integrity
+                  this.carriers.get(o.getCarrier() == null ? null : o.getCarrier().getId()),
+                  o.getEntryDate(),
+                  o.getItemCount(),
+                  o.isAllLocal(),
+                  o.isFulfilled());
+
+          orders.put(order.getId(), order);
+          // referential integrity
+          district.getOrders().add(order);
+          this.customers.get(order.getCustomerRef().getId()).getOrderRefs().add(order);
+        }
       }
     }
-    return orders(os);
-  }
-
-  private static List<OrderData> orders(List<OrderEntity> os) {
-    List<OrderData> orders =
-        os.parallelStream()
-            .map(
-                o -> {
-                  OrderData order = new OrderData();
-                  order.setId(o.getId());
-                  order.setItemCount(o.getItemCount());
-                  order.setEntryDate(o.getEntryDate());
-                  order.setFulfilled(o.isFulfilled());
-                  order.setCarrierId(o.getCarrier() == null ? null : o.getCarrier().getId());
-                  order.setAllLocal(o.isAllLocal());
-                  order.setDistrictId(o.getDistrict().getId());
-                  order.setCustomerId(o.getCustomer().getId());
-                  return order;
-                })
-            .sorted(Comparator.comparing(OrderData::getEntryDate))
-            .collect(Collectors.toList());
-    LOG.debug("Converted {} orders", orders.size());
     return orders;
   }
 
   private List<OrderItemData> convertOrderItems(List<WarehouseEntity> ws) {
-    List<OrderItemEntity> ois = new ArrayList<>();
+    List<OrderItemData> ois = new ArrayList<>();
     for (WarehouseEntity w : ws) {
       for (DistrictEntity d : w.getDistricts()) {
         for (OrderEntity o : d.getOrders()) {
-          ois.addAll(o.getItems());
+          OrderData order = this.orders.get(o.getId());
+          for (OrderItemEntity i : o.getItems()) {
+            OrderItemData item = new OrderItemData(i.getId(),
+                    order,
+                    this.products.get(i.getProduct().getId()),
+                    this.warehouses.get(i.getSupplyingWarehouse().getId()),
+                    i.getNumber(),
+                    i.getDeliveryDate(),
+                    i.getQuantity(),
+                    i.getAmount(),
+                    i.getDistInfo()
+            );
+
+            ois.add(item);
+            //referential integrity
+            order.getItems().add(item);
+          }
         }
       }
     }
-    return orderItems(ois);
-  }
-
-  private static List<OrderItemData> orderItems(List<OrderItemEntity> ois) {
-    List<OrderItemData> orderItems =
-        ois.stream()
-            .map(
-                item -> {
-                  OrderItemData orderItem = new OrderItemData();
-                  orderItem.setId(item.getId());
-                  orderItem.setOrderId(item.getOrder().getId());
-                  orderItem.setProductId(item.getProduct().getId());
-                  orderItem.setSupplyingWarehouseId(item.getSupplyingWarehouse().getId());
-                  orderItem.setAmount(item.getAmount());
-                  orderItem.setQuantity(item.getQuantity());
-                  orderItem.setNumber(item.getNumber());
-                  orderItem.setDistInfo(item.getDistInfo());
-                  orderItem.setDeliveryDate(item.getDeliveryDate());
-                  return orderItem;
-                })
-            .collect(Collectors.toList());
-    LOG.debug("Converted {} order items", orderItems.size());
-    return orderItems;
+    return ois;
   }
 
   private List<PaymentData> convertPayments(List<WarehouseEntity> ws) {
@@ -358,37 +359,33 @@ public class JpaToMsConverter {
                                 d.getCustomers().parallelStream()
                                     .flatMap(c -> c.getPayments().stream())))
             .collect(Collectors.toList());
-    return payments(ps);
-  }
 
-  private static List<PaymentData> payments(List<PaymentEntity> ps) {
-    List<PaymentData> payments =
-        ps.parallelStream()
-            .map(
-                p -> {
-                  PaymentData payment = new PaymentData();
-                  payment.setId(p.getId());
-                  payment.setAmount(p.getAmount());
-                  payment.setDate(p.getDate());
-                  payment.setData(p.getData());
-                  payment.setCustomerId(p.getCustomer().getId());
-                  payment.setDistrictId(p.getDistrict().getId());
-                  return payment;
-                })
-            .sorted(Comparator.comparing(PaymentData::getDate))
-            .collect(Collectors.toList());
-    LOG.debug("Converted {} payments", payments.size());
+    List<PaymentData> payments = new ArrayList<>();
+    for (PaymentEntity p : ps) {
+      PaymentData payment = new PaymentData(p.getId(),
+              this.customers.get(p.getCustomer().getId()),
+              p.getDate(),
+              p.getAmount(),
+              p.getData());
+
+      payments.add(payment);
+      // referential integrity
+      this.customers.get(p.getCustomer().getId()).getPaymentRefs().add(payment);
+
+    }
+
     return payments;
   }
 
-  private DistrictData district(DistrictEntity d, WarehouseEntity w) {
-    DistrictData district = new DistrictData();
-    district.setId(d.getId());
-    district.setWarehouseId(d.getWarehouse().getId());
-    district.setName(d.getName());
-    district.setAddress(address(d.getAddress()));
-    district.setSalesTax(d.getSalesTax());
-    district.setYearToDateBalance(d.getYearToDateBalance());
+  private DistrictData district(DistrictEntity d, WarehouseData warehouse) {
+    DistrictData district = new DistrictData(
+            d.getId(),
+            warehouse,
+            d.getName(),
+            address(d.getAddress()),
+            d.getSalesTax(),
+            d.getYearToDateBalance()
+    );
     return district;
   }
 

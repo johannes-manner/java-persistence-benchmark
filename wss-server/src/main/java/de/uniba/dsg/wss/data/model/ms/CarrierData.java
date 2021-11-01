@@ -8,32 +8,27 @@ package de.uniba.dsg.wss.data.model.ms;
  */
 public class CarrierData extends BaseData {
 
-  private String name;
-  private String phoneNumber;
-  private AddressData address;
+  private final String name;
+  private final String phoneNumber;
+  private final AddressData address;
+
+  public CarrierData(String id, String name, String phoneNumber, AddressData address) {
+    super(id);
+    this.name = name;
+    this.phoneNumber = phoneNumber;
+    this.address = address;
+  }
 
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public String getPhoneNumber() {
     return phoneNumber;
   }
 
-  public void setPhoneNumber(String phoneNumber) {
-    this.phoneNumber = phoneNumber;
-  }
-
   public AddressData getAddress() {
     return address;
-  }
-
-  public void setAddress(AddressData address) {
-    this.address = address;
   }
 
   @Override

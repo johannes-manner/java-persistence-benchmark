@@ -8,53 +8,34 @@ package de.uniba.dsg.wss.data.model.ms;
  */
 public class EmployeeData extends PersonData {
 
-  private String title;
-  private String username;
-  private String password;
-  private String districtId;
-  private String districtWarehouseId;
+  private final DistrictData districtRef;
 
-  public EmployeeData() {}
+  private final String title;
+  private final String username;
+  private final String password;
+
+  public EmployeeData(String id, String firstName, String middleName, String lastName, AddressData address, String phoneNumber, String email, String title, String username, String password, DistrictData districtRef) {
+    super(id, firstName, middleName, lastName, address, phoneNumber, email);
+    this.title = title;
+    this.username = username;
+    this.password = password;
+    this.districtRef = districtRef;
+  }
 
   public String getTitle() {
     return title;
   }
 
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-
   public String getUsername() {
     return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
   }
 
   public String getPassword() {
     return password;
   }
 
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getDistrictId() {
-    return districtId;
-  }
-
-  public void setDistrictId(String districtId) {
-    this.districtId = districtId;
-  }
-
-  public String getDistrictWarehouseId() {
-    return districtWarehouseId;
-  }
-
-  public void setDistrictWarehouseId(String districtWarehouseId) {
-    this.districtWarehouseId = districtWarehouseId;
+  public DistrictData getDistrictRef() {
+    return districtRef;
   }
 
   @Override

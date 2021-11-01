@@ -1,7 +1,7 @@
 package de.uniba.dsg.wss.service.ms;
 
 import de.uniba.dsg.wss.data.model.ms.OrderItemData;
-import de.uniba.dsg.wss.data.model.ms.StockData;
+import de.uniba.dsg.wss.data.model.ms.v2.StockData;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponseItem;
@@ -202,13 +202,13 @@ public class MsNewOrderService extends NewOrderService {
 
   private static NewOrderResponseItem newOrderResponseLine(OrderItemData item) {
     NewOrderResponseItem requestLine = new NewOrderResponseItem();
-    requestLine.setSupplyingWarehouseId(item.getSupplyingWarehouseId());
-    requestLine.setItemId(item.getProductId());
-    requestLine.setItemPrice(0);
-    requestLine.setAmount(item.getAmount());
-    requestLine.setQuantity(item.getQuantity());
-    requestLine.setStockQuantity(0);
-    requestLine.setBrandGeneric(null);
+//    requestLine.setSupplyingWarehouseId(item.getSupplyingWarehouseId());
+//    requestLine.setItemId(item.getProductId());
+//    requestLine.setItemPrice(0);
+//    requestLine.setAmount(item.getAmount());
+//    requestLine.setQuantity(item.getQuantity());
+//    requestLine.setStockQuantity(0);
+//    requestLine.setBrandGeneric(null);
     return requestLine;
   }
 }

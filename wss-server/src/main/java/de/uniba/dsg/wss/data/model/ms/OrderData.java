@@ -1,6 +1,8 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An order issued by a {@link CustomerData customer} for a certain amount of {@link ProductData
@@ -11,69 +13,59 @@ import java.time.LocalDateTime;
  */
 public class OrderData extends BaseData{
 
-  private String districtId;
-  private String customerId;
-  private String carrierId;
-  private LocalDateTime entryDate;
-  private int itemCount;
-  private boolean allLocal;
-  private boolean fulfilled;
+  private final DistrictData districtRef;
+  private final CustomerData customerRef;
+  private final CarrierData carrierRef;
 
-  public String getDistrictId() {
-    return districtId;
+  private final LocalDateTime entryDate;
+  private final int itemCount;
+  private final boolean allLocal;
+  private final boolean fulfilled;
+
+  private final List<OrderItemData> items;
+
+  public OrderData(String id, DistrictData districtRef, CustomerData customerRef, CarrierData carrierRef, LocalDateTime entryDate, int itemCount, boolean allLocal, boolean fulfilled) {
+    super(id);
+    this.districtRef = districtRef;
+    this.customerRef = customerRef;
+    this.carrierRef = carrierRef;
+    this.entryDate = entryDate;
+    this.itemCount = itemCount;
+    this.allLocal = allLocal;
+    this.fulfilled = fulfilled;
+    this.items = new ArrayList<>();
   }
 
-  public void setDistrictId(String districtId) {
-    this.districtId = districtId;
+  public DistrictData getDistrictRef() {
+    return districtRef;
   }
 
-  public String getCustomerId() {
-    return customerId;
+  public CustomerData getCustomerRef() {
+    return customerRef;
   }
 
-  public void setCustomerId(String customerId) {
-    this.customerId = customerId;
-  }
-
-  public String getCarrierId() {
-    return carrierId;
-  }
-
-  public void setCarrierId(String carrierId) {
-    this.carrierId = carrierId;
+  public CarrierData getCarrierRef() {
+    return carrierRef;
   }
 
   public LocalDateTime getEntryDate() {
     return entryDate;
   }
 
-  public void setEntryDate(LocalDateTime entryDate) {
-    this.entryDate = entryDate;
-  }
-
-
   public int getItemCount() {
     return itemCount;
-  }
-
-  public void setItemCount(int itemCount) {
-    this.itemCount = itemCount;
   }
 
   public boolean isAllLocal() {
     return allLocal;
   }
 
-  public void setAllLocal(boolean allLocal) {
-    this.allLocal = allLocal;
-  }
-
   public boolean isFulfilled() {
     return fulfilled;
   }
 
-  public void setFulfilled(boolean fulfilled) {
-    this.fulfilled = fulfilled;
+  public List<OrderItemData> getItems() {
+    return items;
   }
 
   @Override

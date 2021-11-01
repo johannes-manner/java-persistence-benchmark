@@ -1,31 +1,12 @@
 package de.uniba.dsg.wss.service.jpa;
 
-import de.uniba.dsg.wss.data.access.jpa.CustomerRepository;
-import de.uniba.dsg.wss.data.access.jpa.OrderRepository;
-import de.uniba.dsg.wss.data.access.jpa.ProductRepository;
-import de.uniba.dsg.wss.data.access.jpa.StockRepository;
-import de.uniba.dsg.wss.data.access.jpa.WarehouseRepository;
-import de.uniba.dsg.wss.data.model.jpa.BaseEntity;
-import de.uniba.dsg.wss.data.model.jpa.CustomerEntity;
-import de.uniba.dsg.wss.data.model.jpa.DistrictEntity;
-import de.uniba.dsg.wss.data.model.jpa.OrderEntity;
-import de.uniba.dsg.wss.data.model.jpa.OrderItemEntity;
-import de.uniba.dsg.wss.data.model.jpa.ProductEntity;
-import de.uniba.dsg.wss.data.model.jpa.StockEntity;
-import de.uniba.dsg.wss.data.model.jpa.WarehouseEntity;
+import de.uniba.dsg.wss.data.access.jpa.*;
+import de.uniba.dsg.wss.data.model.jpa.*;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequestItem;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponseItem;
 import de.uniba.dsg.wss.service.NewOrderService;
-import java.sql.SQLException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -34,6 +15,15 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "jpa")
@@ -83,6 +73,7 @@ public class JpaNewOrderService extends NewOrderService {
     order.setCarrier(null);
     order.setEntryDate(LocalDateTime.now());
     order.setItemCount(req.getItems().size());
+    // TODO ask benedikt why this is important
     // We're not all local if any item is supplied by a non-home warehouse
     order.setAllLocal(
         req.getItems().stream()

@@ -2,7 +2,6 @@ package de.uniba.dsg.wss.auth.ms;
 
 import de.uniba.dsg.wss.auth.EmployeeUserDetails;
 import de.uniba.dsg.wss.auth.EmployeeUserDetailsService;
-import de.uniba.dsg.wss.data.model.ms.EmployeeData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -21,18 +20,20 @@ public class MsEmployeeUserDetailsService extends EmployeeUserDetailsService {
 //  private final JacisStore<String, EmployeeData> employeeStore;
 
   @Autowired
-  public MsEmployeeUserDetailsService() {
+  public MsEmployeeUserDetailsService(){//JacisStore<String, EmployeeData> employeeStore) {
+   // this.employeeStore = employeeStore;
   }
 
   @Override
   public EmployeeUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    EmployeeData employee = null;
+//    EmployeeData employee =
 //        employeeStore
 //            .streamReadOnly(e -> e.getUsername().equals(username))
 //            .parallel()
 //            .findAny()
 //            .orElseThrow(
 //                () -> new UsernameNotFoundException("Unable to find user with name " + username));
-    return createWithDefaultRole(employee.getUsername(), employee.getPassword());
+//    return createWithDefaultRole(employee.getUsername(), employee.getPassword());
+    return null;
   }
 }

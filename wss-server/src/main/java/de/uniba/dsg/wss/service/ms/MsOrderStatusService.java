@@ -93,15 +93,15 @@ public class MsOrderStatusService extends OrderStatusService {
   private static List<OrderItemStatusResponse> toOrderItemStatusResponse(
       List<OrderItemData> orderItems) {
     List<OrderItemStatusResponse> responses = new ArrayList<>(orderItems.size());
-    for (OrderItemData item : orderItems) {
-      OrderItemStatusResponse res = new OrderItemStatusResponse();
-      res.setSupplyingWarehouseId(item.getSupplyingWarehouseId());
-      res.setProductId(item.getProductId());
-      res.setQuantity(item.getQuantity());
-      res.setAmount(item.getAmount());
-      res.setDeliveryDate(item.getDeliveryDate());
-      responses.add(res);
-    }
+//    for (OrderItemData item : orderItems) {
+//      OrderItemStatusResponse res = new OrderItemStatusResponse();
+//      res.setSupplyingWarehouseId(item.getSupplyingWarehouseId());
+//      res.setProductId(item.getProductId());
+//      res.setQuantity(item.getQuantity());
+//      res.setAmount(item.getAmount());
+//      res.setDeliveryDate(item.getDeliveryDate());
+//      responses.add(res);
+//    }
     return responses;
   }
 
@@ -120,7 +120,7 @@ public class MsOrderStatusService extends OrderStatusService {
     res.setCustomerBalance(customer.getBalance());
     res.setOrderId(order.getId());
     res.setOrderEntryDate(order.getEntryDate());
-    res.setOrderCarrierId(order.getCarrierId());
+    res.setOrderCarrierId(order.getCarrierRef().getId());
     res.setItemStatus(itemStatusResponses);
     return res;
   }

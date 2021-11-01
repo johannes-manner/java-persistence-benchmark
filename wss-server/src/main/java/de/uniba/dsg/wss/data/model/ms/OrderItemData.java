@@ -10,77 +10,58 @@ import java.time.LocalDateTime;
  */
 public class OrderItemData extends BaseData {
 
-  private String orderId;
-  private int number;
-  private String productId;
-  private String supplyingWarehouseId;
-  private LocalDateTime deliveryDate;
-  private int quantity;
-  private double amount;
-  private String distInfo;
+  private final OrderData orderRef;
+  private final ProductData productRef;
+  private final WarehouseData warehouseRef;
 
-  public String getOrderId() {
-    return orderId;
+  private final int number;
+  private final LocalDateTime deliveryDate;
+  private final int quantity;
+  private final double amount;
+  private final String distInfo;
+
+  public OrderItemData(String id, OrderData orderRef, ProductData productRef, WarehouseData warehouseRef, int number, LocalDateTime deliveryDate, int quantity, double amount, String distInfo) {
+    super(id);
+    this.orderRef = orderRef;
+    this.productRef = productRef;
+    this.warehouseRef = warehouseRef;
+    this.number = number;
+    this.deliveryDate = deliveryDate;
+    this.quantity = quantity;
+    this.amount = amount;
+    this.distInfo = distInfo;
   }
 
-  public void setOrderId(String orderId) {
-    this.orderId = orderId;
+  public OrderData getOrderRef() {
+    return orderRef;
+  }
+
+  public ProductData getProductRef() {
+    return productRef;
+  }
+
+  public WarehouseData getWarehouseRef() {
+    return warehouseRef;
   }
 
   public int getNumber() {
     return number;
   }
 
-  public void setNumber(int number) {
-    this.number = number;
-  }
-
-  public String getProductId() {
-    return productId;
-  }
-
-  public void setProductId(String productId) {
-    this.productId = productId;
-  }
-
-  public String getSupplyingWarehouseId() {
-    return supplyingWarehouseId;
-  }
-
-  public void setSupplyingWarehouseId(String supplyingWarehouseId) {
-    this.supplyingWarehouseId = supplyingWarehouseId;
-  }
-
   public LocalDateTime getDeliveryDate() {
     return deliveryDate;
-  }
-
-  public void setDeliveryDate(LocalDateTime deliveryDate) {
-    this.deliveryDate = deliveryDate;
   }
 
   public int getQuantity() {
     return quantity;
   }
 
-  public void setQuantity(int quantity) {
-    this.quantity = quantity;
-  }
-
   public double getAmount() {
     return amount;
   }
 
-  public void setAmount(double amount) {
-    this.amount = amount;
-  }
-
   public String getDistInfo() {
     return distInfo;
-  }
-
-  public void setDistInfo(String distInfo) {
-    this.distInfo = distInfo;
   }
 
   @Override
