@@ -3,6 +3,7 @@ package de.uniba.dsg.wss.service;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
 import de.uniba.dsg.wss.util.UniformRandom;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public abstract class NewOrderService
         / 100;
   }
 
+  // TODO ask why... simulating out of stock scenarios???
   protected int determineNewStockQuantity(int stockQuantity, int orderItemQuantity) {
     if (stockQuantity + 10 > orderItemQuantity) {
       return stockQuantity - orderItemQuantity;

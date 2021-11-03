@@ -1,8 +1,4 @@
-package de.uniba.dsg.wss.data.model.ms.v2;
-
-import de.uniba.dsg.wss.data.model.ms.BaseData;
-import de.uniba.dsg.wss.data.model.ms.ProductData;
-import de.uniba.dsg.wss.data.model.ms.WarehouseData;
+package de.uniba.dsg.wss.data.model.ms;
 
 /**
  * The available amount of a specific {@link ProductData product} at some {@link WarehouseData
@@ -61,35 +57,27 @@ public class StockData extends BaseData {
   }
 
   public int getQuantity() {
-    return quantity;
-  }
-
-  public void setQuantity(int quantity) {
-    this.quantity = quantity;
+    synchronized (this.id) {
+      return quantity;
+    }
   }
 
   public double getYearToDateBalance() {
-    return yearToDateBalance;
-  }
-
-  public void setYearToDateBalance(double yearToDateBalance) {
-    this.yearToDateBalance = yearToDateBalance;
+    synchronized (this.id) {
+      return yearToDateBalance;
+    }
   }
 
   public int getOrderCount() {
-    return orderCount;
-  }
-
-  public void setOrderCount(int orderCount) {
-    this.orderCount = orderCount;
+    synchronized (this.id) {
+      return orderCount;
+    }
   }
 
   public int getRemoteCount() {
-    return remoteCount;
-  }
-
-  public void setRemoteCount(int remoteCount) {
-    this.remoteCount = remoteCount;
+    synchronized (this.id) {
+      return remoteCount;
+    }
   }
 
   public String getData() {
@@ -136,8 +124,26 @@ public class StockData extends BaseData {
     return dist10;
   }
 
-  @Override
-  public StockData clone() {
-    return (StockData) super.clone();
+  public boolean reduceQuantity(int quantity) {
+    synchronized (this.id) {
+      if (this.quantity < quantity) {
+        // avoid permanent out of stock scenarios, but let this order fail and retry
+        // replace the NewOrderService#determineNewStockQuantity functionality
+        this.quantity += 91;
+        return false;
+      }
+      this.quantity -= quantity;
+      this.yearToDateBalance += quantity;
+      this.orderCount++;
+      return true;
+    }
+  }
+
+  public void undoReduceQuantityOperation(int quantity) {
+    synchronized (this.id) {
+      this.quantity += quantity;
+      this.yearToDateBalance -= quantity;
+      this.orderCount--;
+    }
   }
 }

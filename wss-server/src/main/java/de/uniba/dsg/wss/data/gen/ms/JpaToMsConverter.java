@@ -3,7 +3,6 @@ package de.uniba.dsg.wss.data.gen.ms;
 import de.uniba.dsg.wss.data.gen.jpa.JpaDataGenerator;
 import de.uniba.dsg.wss.data.model.jpa.*;
 import de.uniba.dsg.wss.data.model.ms.*;
-import de.uniba.dsg.wss.data.model.ms.v2.StockData;
 import de.uniba.dsg.wss.util.Stopwatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -145,12 +144,12 @@ public class JpaToMsConverter {
     Map<String, DistrictData> districts = new HashMap<>();
     for (WarehouseEntity w : ws) {
       WarehouseData warehouse = this.warehouses.get(w.getId());
-      List<DistrictData> districtsForWarehouse = warehouse.getDistricts();
+      Map<String, DistrictData> districtsForWarehouse = warehouse.getDistricts();
 
       for (DistrictEntity d : w.getDistricts()) {
         // referential integrity...
         DistrictData districtData = district(d,warehouse);
-        districtsForWarehouse.add(districtData);
+        districtsForWarehouse.put(districtData.getId(), districtData);
 
         districts.put(districtData.getId(), districtData);
       }
@@ -392,5 +391,13 @@ public class JpaToMsConverter {
   private static AddressData address(AddressEmbeddable a) {
     return new AddressData(
         a.getStreet1(), a.getStreet2(), a.getZipCode(), a.getCity(), a.getState());
+  }
+
+  public Map<String, StockData> getSocksOptimized() {
+    Map<String, StockData> stocks = new HashMap<>();
+    for(StockData stock : this.stocks) {
+      stocks.put(stock.getWarehouseRef().getId() + stock.getProductRef().getId(), stock);
+    }
+    return stocks;
   }
 }

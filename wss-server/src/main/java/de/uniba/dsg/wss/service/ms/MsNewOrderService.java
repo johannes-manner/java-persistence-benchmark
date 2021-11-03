@@ -1,135 +1,95 @@
 package de.uniba.dsg.wss.service.ms;
 
-import de.uniba.dsg.wss.data.model.ms.OrderItemData;
-import de.uniba.dsg.wss.data.model.ms.v2.StockData;
+import com.google.common.util.concurrent.Uninterruptibles;
+import de.uniba.dsg.wss.data.access.ms.DataConsistencyManager;
+import de.uniba.dsg.wss.data.model.ms.*;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
+import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequestItem;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponseItem;
 import de.uniba.dsg.wss.service.NewOrderService;
+import one.microstream.storage.embedded.types.EmbeddedStorageManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.TransactionalException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
 public class MsNewOrderService extends NewOrderService {
 
-//  private final JacisContainer container;
-//  private final JacisStore<String, WarehouseData> warehouseStore;
-//  private final JacisStore<String, DistrictData> districtStore;
-//  private final JacisStore<String, StockData> stockStore;
-//  private final JacisStore<String, CustomerData> customerStore;
-//  private final JacisStore<String, OrderData> orderStore;
-//  private final JacisStore<String, OrderItemData> orderItemStore;
-//  private final JacisStore<String, ProductData> productStore;
+  private static final Logger LOG = LogManager.getLogger(MsNewOrderService.class);
+
+  private static final int MAX_RETRIES = 5;
+  private static final long RETRY_TIME = 100;
+  private final DataConsistencyManager consistencyManager;
+  private final EmbeddedStorageManager storageManager;
+  private final MsDataRoot dataRoot;
 
   @Autowired
-  public MsNewOrderService(
-//      JacisContainer container,
-//      JacisStore<String, WarehouseData> warehouseStore,
-//      JacisStore<String, DistrictData> districtStore,
-//      JacisStore<String, StockData> stockStore,
-//      JacisStore<String, CustomerData> customerStore,
-//      JacisStore<String, OrderData> orderStore,
-//      JacisStore<String, OrderItemData> orderItemStore,
-//      JacisStore<String, ProductData> productStore) {
-//    this.container = container;
-//    this.warehouseStore = warehouseStore;
-//    this.districtStore = districtStore;
-//    this.stockStore = stockStore;
-//    this.customerStore = customerStore;
-//    this.orderStore = orderStore;
-//    this.orderItemStore = orderItemStore;
-//    this.productStore = productStore;
-  ){
+  public MsNewOrderService(DataConsistencyManager consistencyManager, EmbeddedStorageManager storageManager, MsDataRoot dataRoot){
+    this.consistencyManager = consistencyManager;
+    this.storageManager = storageManager;
+    this.dataRoot = dataRoot;
   }
 
   @Override
   public NewOrderResponse process(NewOrderRequest req) {
+
+    // get basic data for transaction
+    WarehouseData warehouseData = dataRoot.getWarehouses().get(req.getWarehouseId());
+    DistrictData districtData = warehouseData.getDistricts().get(req.getDistrictId());
+    CustomerData customerData = dataRoot.getCustomers().get(req.getCustomerId());
+
+    if(warehouseData == null || districtData == null || customerData == null) {
+      throw new IllegalArgumentException();
+    }
+
+    // Get all supplying warehouses and products to ensure no invalid ids have been provided
+    // optimization: checking if stock is available for warehouse and product
+    List<StockUpdateDTO> stockUpdates = new ArrayList<>();
+    for(NewOrderRequestItem item : req.getItems()) {
+      StockData stock = dataRoot.getStocks().get(item.getSupplyingWarehouseId()+item.getProductId());
+      if(stock == null) {
+        throw new IllegalArgumentException();
+      }
+      StockUpdateDTO stockUpdate = new StockUpdateDTO(stock, item.getQuantity());
+      stockUpdates.add(stockUpdate);
+    }
+
+    // Implementing retry mechanism (TODO refactor in an own class?)
+    boolean updateSuccessful = false;
+    for(int i = 0 ; i < MAX_RETRIES; i++) {
+      // Update stock entries (CriticalSection!)
+      updateSuccessful = this.consistencyManager.updateStock(stockUpdates);
+      if(updateSuccessful){
+        break;
+      } else {
+        Uninterruptibles.sleepUninterruptibly(RETRY_TIME, TimeUnit.MILLISECONDS);
+      }
+    }
+
+    if(updateSuccessful == false){
+      LOG.info("Cancel order processing - retries exceeded");
+      // TODO make this better
+      throw new TransactionalException("Can't process order", null);
+    }
+
+    // create order items
+
+
+
       return null;
 //    TransactionManager transactionManager = new TransactionManager(container, 5, 100);
 //    return transactionManager.commit(
 //        () -> {
-//          // Get warehouse, district and customer
-//          WarehouseData warehouse = warehouseStore.getReadOnly(req.getWarehouseId());
-//          DistrictData district = districtStore.getReadOnly(req.getDistrictId());
-//          if (!district.getId().equals(req.getDistrictId())
-//              || !district.getWarehouseId().equals(req.getWarehouseId())) {
-//            throw new IllegalArgumentException();
-//          }
-//          CustomerData customer = customerStore.get(req.getCustomerId());
 //
-//          // Get all supplying warehouses and products to ensure no invalid ids have been
-//          // provided
-//          List<String> supplyingWarehouseIds =
-//              req.getItems().stream()
-//                  .map(NewOrderRequestItem::getSupplyingWarehouseId)
-//                  .collect(Collectors.toList());
-//          List<String> productIds =
-//              req.getItems().stream()
-//                  .map(NewOrderRequestItem::getProductId)
-//                  .collect(Collectors.toList());
-//
-//          List<WarehouseData> supplyingWarehouses =
-//              supplyingWarehouseIds.stream()
-//                  .map(warehouseStore::getReadOnly)
-//                  .collect(Collectors.toList());
-//          List<ProductData> orderItemProducts =
-//              productIds.stream().map(productStore::getReadOnly).collect(Collectors.toList());
-//
-//          // Get all relevant stocks
-//          List<StockData> stocks =
-//              stockStore.stream(
-//                      s ->
-//                          productIds.contains(s.getProductId())
-//                              && supplyingWarehouseIds.contains(s.getWarehouseId()))
-//                  .parallel()
-//                  .collect(Collectors.toList());
-//
-//          // Create a new order
-//          OrderData order = new OrderData();
-//          order.setDistrictId(district.getId());
-//          order.setCustomerId(customer.getId());
-//          order.setEntryDate(LocalDateTime.now());
-//          order.setItemCount(req.getItems().size());
-//          orderStore.update(order.getId(), order);
-//
-//          List<NewOrderResponseItem> responseLines = new ArrayList<>(req.getItems().size());
-//          double orderItemSum = 0;
-//          for (int i = 0; i < req.getItems().size(); i++) {
-//            NewOrderRequestItem reqItem = req.getItems().get(i);
-//            WarehouseData supplyingWarehouse =
-//                supplyingWarehouses.stream()
-//                    .filter(w -> w.getId().equals(reqItem.getSupplyingWarehouseId()))
-//                    .findAny()
-//                    .orElseThrow(
-//                        () ->
-//                            new IllegalStateException(
-//                                "Failed to find warehouse " + reqItem.getSupplyingWarehouseId()));
-//            ProductData product =
-//                orderItemProducts.stream()
-//                    .filter(p -> p.getId().equals(reqItem.getProductId()))
-//                    .findAny()
-//                    .orElseThrow(
-//                        () ->
-//                            new IllegalStateException(
-//                                "Failed to find product " + reqItem.getProductId()));
-//            StockData stock =
-//                stocks.stream()
-//                    .filter(
-//                        s ->
-//                            s.getWarehouseId().equals(supplyingWarehouse.getId())
-//                                && s.getProductId().equals(product.getId()))
-//                    .findAny()
-//                    .orElseThrow(
-//                        () ->
-//                            new IllegalStateException(
-//                                "Failed to find stock for product "
-//                                    + product.getId()
-//                                    + " of warehouse "
-//                                    + supplyingWarehouse.getId()));
 //
 //            OrderItemData orderItem = new OrderItemData();
 //            orderItem.setOrderId(order.getId());
@@ -145,12 +105,6 @@ public class MsNewOrderService extends NewOrderService {
 //
 //            NewOrderResponseItem responseLine = newOrderResponseLine(orderItem);
 //            responseLines.add(responseLine);
-//            int stockQuantity = stock.getQuantity();
-//            int orderItemQuantity = orderItem.getQuantity();
-//            stock.setQuantity(determineNewStockQuantity(stockQuantity, orderItemQuantity));
-//            stock.setYearToDateBalance(stock.getYearToDateBalance() + orderItemQuantity);
-//            stock.setOrderCount(stock.getOrderCount() + 1);
-//            stockStore.update(stock.getId(), stock);
 //            responseLine.setStockQuantity(stock.getQuantity());
 //            responseLine.setItemName(product.getName());
 //            responseLine.setItemPrice(product.getPrice());

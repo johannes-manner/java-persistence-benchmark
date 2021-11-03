@@ -38,8 +38,4 @@ public class EmployeeData extends PersonData {
     return districtRef;
   }
 
-  @Override
-  public EmployeeData clone() {
-    return (EmployeeData) super.clone();
-  }
 }

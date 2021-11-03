@@ -7,10 +7,15 @@ public class MsDataRoot {
 
     private final Map<String, WarehouseData> warehouses;
     private final Map<String, EmployeeData> employees;
+    private final Map<String, CustomerData> customers;
+    // map contains a compound key: warehouseId+productId
+    private final Map<String, StockData> stocks;
 
     public MsDataRoot(){
         warehouses = new ConcurrentHashMap<>();
         employees = new ConcurrentHashMap<>();
+        customers = new ConcurrentHashMap<>();
+        stocks = new ConcurrentHashMap<>();
     }
 
     public Map<String, WarehouseData> getWarehouses() {
@@ -19,5 +24,13 @@ public class MsDataRoot {
 
     public Map<String, EmployeeData> getEmployees(){
         return employees;
+    }
+
+    public Map<String, CustomerData> getCustomers() {
+        return customers;
+    }
+
+    public Map<String, StockData> getStocks() {
+        return stocks;
     }
 }

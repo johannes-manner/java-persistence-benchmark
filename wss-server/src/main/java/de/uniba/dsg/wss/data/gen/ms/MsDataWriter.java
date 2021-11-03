@@ -37,6 +37,8 @@ public class MsDataWriter implements DataWriter<JpaToMsConverter> {
 
     this.msDataRoot.getWarehouses().putAll(converter.getWarehousesMap());
     this.msDataRoot.getEmployees().putAll(converter.getEmployees());
+    this.msDataRoot.getCustomers().putAll(converter.getCustomers());
+    this.msDataRoot.getStocks().putAll(converter.getSocksOptimized());
     this.storageManager.setRoot(this.msDataRoot);
     this.storageManager.storeRoot();
 

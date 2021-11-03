@@ -64,8 +64,4 @@ public class OrderItemData extends BaseData {
     return distInfo;
   }
 
-  @Override
-  public OrderItemData clone() {
-    return (OrderItemData) super.clone();
-  }
 }

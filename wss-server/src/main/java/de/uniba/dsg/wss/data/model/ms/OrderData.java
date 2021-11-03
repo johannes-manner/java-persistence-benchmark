@@ -67,9 +67,4 @@ public class OrderData extends BaseData{
   public List<OrderItemData> getItems() {
     return items;
   }
-
-  @Override
-  public OrderData clone() {
-    return (OrderData) super.clone();
-  }
 }

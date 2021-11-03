@@ -104,9 +104,4 @@ public class CustomerData extends PersonData {
   public List<PaymentData> getPaymentRefs(){
     return this.paymentRefs;
   }
-
-  @Override
-  public CustomerData clone() {
-    return (CustomerData) super.clone();
-  }
 }

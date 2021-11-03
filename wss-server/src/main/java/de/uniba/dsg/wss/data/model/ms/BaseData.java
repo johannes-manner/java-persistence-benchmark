@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public abstract class BaseData {
 
-  private String id;
+  protected final String id;
 
   public BaseData() {
     id = UUID.randomUUID().toString();
@@ -18,14 +18,4 @@ public abstract class BaseData {
   public String getId() {
     return id;
   }
-
-  @Override
-  protected Object clone() {
-    try {
-      return super.clone();
-    } catch (CloneNotSupportedException e) {
-      throw new InternalError("Could not clone " + this.getClass().getName());
-    }
-  }
-
 }

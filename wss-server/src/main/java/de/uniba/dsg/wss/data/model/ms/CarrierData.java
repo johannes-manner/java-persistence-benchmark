@@ -30,9 +30,4 @@ public class CarrierData extends BaseData {
   public AddressData getAddress() {
     return address;
   }
-
-  @Override
-  public CarrierData clone() {
-    return (CarrierData) super.clone();
-  }
 }

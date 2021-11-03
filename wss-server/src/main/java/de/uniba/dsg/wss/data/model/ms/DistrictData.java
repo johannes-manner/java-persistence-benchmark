@@ -66,8 +66,4 @@ public class DistrictData extends BaseData {
     return this.orderRefs;
   }
 
-  @Override
-  public DistrictData clone() {
-    return (DistrictData) super.clone();
-  }
 }

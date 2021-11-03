@@ -38,9 +38,4 @@ public class PaymentData extends BaseData{
   public String getData() {
     return data;
   }
-
-  @Override
-  public PaymentData clone() {
-    return (PaymentData) super.clone();
-  }
 }

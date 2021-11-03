@@ -36,8 +36,4 @@ public class ProductData extends BaseData{
     return data;
   }
 
-  @Override
-  public ProductData clone() {
-    return (ProductData) super.clone();
-  }
 }

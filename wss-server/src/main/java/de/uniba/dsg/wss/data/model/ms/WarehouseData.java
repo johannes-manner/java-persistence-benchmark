@@ -1,10 +1,11 @@
 package de.uniba.dsg.wss.data.model.ms;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import de.uniba.dsg.wss.data.model.ms.v2.StockData;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A warehouse of the wholesale supplier.
@@ -19,7 +20,7 @@ public class WarehouseData extends BaseData{
   private AtomicDouble yearToDateBalance;
 
   // TODO check this
-  private final List<DistrictData> districtRefs;
+  private final Map<String, DistrictData> districtRefs;
   private final List<StockData> stockRefs;
 
   public WarehouseData(String id, String name, AddressData address){
@@ -28,7 +29,7 @@ public class WarehouseData extends BaseData{
     this.address = address;
     salesTax = new AtomicDouble(0.0);
     yearToDateBalance = new AtomicDouble(0.0);
-    districtRefs = new ArrayList<>();
+    districtRefs = new HashMap<>();
     stockRefs = new ArrayList<>();
   }
 
@@ -56,7 +57,7 @@ public class WarehouseData extends BaseData{
     return this.yearToDateBalance.compareAndSet(oldYearToDateBalance, newYearToDateBalance);
   }
 
-  public List<DistrictData> getDistricts() {
+  public Map<String, DistrictData> getDistricts() {
     return this.districtRefs;
   }
 
@@ -64,8 +65,4 @@ public class WarehouseData extends BaseData{
     return this.stockRefs;
   }
 
-  @Override
-  public WarehouseData clone() {
-    return (WarehouseData) super.clone();
-  }
 }

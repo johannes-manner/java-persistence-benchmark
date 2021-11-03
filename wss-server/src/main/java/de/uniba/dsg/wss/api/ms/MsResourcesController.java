@@ -1,11 +1,7 @@
 package de.uniba.dsg.wss.api.ms;
 
 import de.uniba.dsg.wss.api.ResourcesController;
-import de.uniba.dsg.wss.data.model.ms.AddressData;
-import de.uniba.dsg.wss.data.model.ms.DistrictData;
-import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
-import de.uniba.dsg.wss.data.model.ms.WarehouseData;
-import de.uniba.dsg.wss.data.model.ms.v2.StockData;
+import de.uniba.dsg.wss.data.model.ms.*;
 import de.uniba.dsg.wss.data.transfer.representations.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -86,10 +83,37 @@ public class MsResourcesController implements ResourcesController {
   }
 
   @GetMapping("w")
-  public List<WarehouseGUI> getDebugWarehouseOutput(){
-    return dataRoot.getWarehouses().entrySet().stream()
-            .map(w -> createRepresentation(w.getValue()))
-            .collect(Collectors.toList());
+  public RootGUI getDebugWarehouseOutput(){
+    return new RootGUI(
+            dataRoot.getWarehouses().entrySet().stream()
+                    .map(w -> new WarehouseGUI(w.getValue()))
+                    .collect(Collectors.toList()),
+            dataRoot.getEmployees().entrySet().stream()
+                    .map(e -> new EmployeeGUI(e.getValue()))
+                    .collect(Collectors.toList())
+    );
+  }
+
+  class RootGUI {
+    public List<WarehouseGUI> warehouseGUIS;
+    public List<EmployeeGUI> employeeGUIS;
+
+    public RootGUI(List<WarehouseGUI> warehouseGUIS, List<EmployeeGUI> employeeGUIS) {
+      this.warehouseGUIS = warehouseGUIS;
+      this.employeeGUIS = employeeGUIS;
+    }
+  }
+
+  class EmployeeGUI {
+    // primary key
+    public String id;
+    // foreign key (N:1)
+    public String districtId;
+
+    public EmployeeGUI(EmployeeData employee) {
+      this.id = employee.getId();
+      this.districtId = employee.getDistrictRef().getId();
+    }
   }
 
   class WarehouseGUI{
@@ -226,7 +250,7 @@ public class MsResourcesController implements ResourcesController {
       this.salesTax = data.getSalesTax();
       this.yearToDateBalance = data.getYearToDateBalance();
       this.districtGUIS = new ArrayList<>();
-      for(DistrictData district : data.getDistricts()) {
+      for(DistrictData district : data.getDistricts().entrySet().stream().map(Map.Entry::getValue).collect(Collectors.toList())) {
         districtGUIS.add(new DistrictGUI(district));
       }
       this.stockGUIs = new ArrayList<>();
@@ -234,10 +258,6 @@ public class MsResourcesController implements ResourcesController {
         stockGUIs.add(new StockGUI(stock));
       }
     }
-  }
-
-  private WarehouseGUI createRepresentation(WarehouseData data) {
-    return new WarehouseGUI(data);
   }
 
 
