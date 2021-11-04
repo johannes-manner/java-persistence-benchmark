@@ -24,6 +24,21 @@ public class OrderData extends BaseData{
 
   private final List<OrderItemData> items;
 
+  public OrderData(DistrictData districtRef, CustomerData customerRef, LocalDateTime entryDate, int itemCount) {
+    super();
+    this.districtRef = districtRef;
+    this.customerRef = customerRef;
+    // TODO
+    this.carrierRef = null;
+    this.entryDate = entryDate;
+    this.itemCount = itemCount;
+    // TODO
+    this.allLocal = false;
+    this.fulfilled = false;
+    this.items = new ArrayList<>();
+  }
+
+  // JPA conversion constructor
   public OrderData(String id, DistrictData districtRef, CustomerData customerRef, CarrierData carrierRef, LocalDateTime entryDate, int itemCount, boolean allLocal, boolean fulfilled) {
     super(id);
     this.districtRef = districtRef;

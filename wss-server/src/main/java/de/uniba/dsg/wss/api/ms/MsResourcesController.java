@@ -213,7 +213,7 @@ public class MsResourcesController implements ResourcesController {
                         c.getItems().stream().map(i ->
                                 new OrderItemGUI(i.getId(),
                                         i.getOrderRef().getId(),
-                                        i.getWarehouseRef().getId(),
+                                        i.getSupplyingWarehouseRef().getId(),
                                         i.getProductRef().getId())).collect(Collectors.toList())
                 )).collect(Collectors.toList());
         this.customers = district.getCustomers().stream().map(c -> new CustomerGUI(c.getId(),

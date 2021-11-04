@@ -109,19 +109,24 @@ public class JpaNewOrderService extends NewOrderService {
               .findByProductIdAndWarehouseId(
                   product.getId(), orderItem.getSupplyingWarehouse().getId())
               .orElseThrow(IllegalStateException::new);
-      NewOrderResponseItem responseLine = newOrderResponseLine(orderItem);
-      responseLines.add(responseLine);
+
       int stockQuantity = stock.getQuantity();
       int orderItemQuantity = orderItem.getQuantity();
       stock.setQuantity(determineNewStockQuantity(stockQuantity, orderItemQuantity));
       stock.setYearToDateBalance(stock.getYearToDateBalance() + orderItemQuantity);
       stock.setOrderCount(stock.getOrderCount() + 1);
       stock = stockRepository.save(stock);
-      responseLine.setStockQuantity(stock.getQuantity());
-      responseLine.setItemName(product.getName());
-      responseLine.setItemPrice(product.getPrice());
-      responseLine.setAmount(product.getPrice() * orderItemQuantity);
-      responseLine.setBrandGeneric(determineBrandGeneric(product.getData(), stock.getData()));
+
+      NewOrderResponseItem responseLine = new NewOrderResponseItem(orderItem.getSupplyingWarehouse().getId(),
+              product.getId(),
+              product.getName(),
+              product.getPrice(),
+              product.getPrice() * orderItemQuantity,
+              orderItem.getQuantity(),
+              stock.getQuantity(),
+              determineBrandGeneric(product.getData(), stock.getData()));
+      responseLines.add(responseLine);
+
       orderItem.setAmount(product.getPrice() * orderItemQuantity);
       orderItem.setDeliveryDate(null);
       orderItem.setNumber(i + 1);
@@ -174,18 +179,6 @@ public class JpaNewOrderService extends NewOrderService {
             stock.getDist08(),
             stock.getDist09(),
             stock.getDist10()));
-  }
-
-  private static NewOrderResponseItem newOrderResponseLine(OrderItemEntity item) {
-    NewOrderResponseItem requestLine = new NewOrderResponseItem();
-    requestLine.setSupplyingWarehouseId(item.getSupplyingWarehouse().getId());
-    requestLine.setItemId(item.getProduct().getId());
-    requestLine.setItemPrice(0);
-    requestLine.setAmount(item.getAmount());
-    requestLine.setQuantity(item.getQuantity());
-    requestLine.setStockQuantity(0);
-    requestLine.setBrandGeneric(null);
-    return requestLine;
   }
 
   private static List<OrderItemEntity> toOrderItems(

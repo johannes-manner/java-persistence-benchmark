@@ -16,6 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.TransactionalException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -81,88 +82,82 @@ public class MsNewOrderService extends NewOrderService {
       throw new TransactionalException("Can't process order", null);
     }
 
+    // create order
+    OrderData order = new OrderData(districtData,
+            customerData,
+            LocalDateTime.now(),
+            stockUpdates.size()
+            );
+
     // create order items
+    List<OrderItemData> orderItems = new ArrayList<>();
+    int i=0;
+    // create return dtos
+    double orderItemSum = 0;
+    List<NewOrderResponseItem> dtoItems = new ArrayList<>();
+
+    for(StockUpdateDTO stockUpdateDTO : stockUpdates) {
+      i++;
+      OrderItemData orderItem = new OrderItemData(order,
+              stockUpdateDTO.getStockData().getProductRef(),
+              stockUpdateDTO.getStockData().getWarehouseRef(),
+              i,
+              null,
+              stockUpdateDTO.getQuantity(),
+              stockUpdateDTO.getQuantity() * stockUpdateDTO.getStockData().getProductRef().getPrice(),
+              getRandomDistrictInfo(stockUpdateDTO.getStockData()));
+
+      // add to business object
+      orderItems.add(orderItem);
+
+      // add to response object
+      dtoItems.add(new NewOrderResponseItem(orderItem.getSupplyingWarehouseRef().getId(),
+              orderItem.getProductRef().getId(),
+              orderItem.getProductRef().getName(),
+              orderItem.getProductRef().getPrice(),
+              orderItem.getAmount(),
+              orderItem.getQuantity(),
+              // TODO ask why
+              0,
+              determineBrandGeneric(orderItem.getProductRef().getData(), stockUpdateDTO.getStockData().getData())));
+      orderItemSum += orderItem.getAmount();
+    }
+
+    // referential integrity
+    // until now - all the state is stack state of the method
+    order.getItems().addAll(orderItems);
+
+    // add the order to the object graph - concurrent hash map :)
+    this.dataRoot.getOrders().put(order.getId(), order);
 
 
-
-      return null;
-//    TransactionManager transactionManager = new TransactionManager(container, 5, 100);
-//    return transactionManager.commit(
-//        () -> {
-//
-//
-//            OrderItemData orderItem = new OrderItemData();
-//            orderItem.setOrderId(order.getId());
-//            orderItem.setNumber(i + 1);
-//            orderItem.setProductId(reqItem.getProductId());
-//            orderItem.setSupplyingWarehouseId(reqItem.getSupplyingWarehouseId());
-//            orderItem.setDeliveryDate(null);
-//            orderItem.setQuantity(reqItem.getQuantity());
-//            orderItem.setAmount(orderItemProducts.get(i).getPrice() * reqItem.getQuantity());
-//            orderItem.setDistInfo(getRandomDistrictInfo(stock));
-//
-//            orderItemStore.update(orderItem.getId(), orderItem);
-//
-//            NewOrderResponseItem responseLine = newOrderResponseLine(orderItem);
-//            responseLines.add(responseLine);
-//            responseLine.setStockQuantity(stock.getQuantity());
-//            responseLine.setItemName(product.getName());
-//            responseLine.setItemPrice(product.getPrice());
-//            responseLine.setAmount(product.getPrice() * orderItemQuantity);
-//            responseLine.setBrandGeneric(determineBrandGeneric(product.getData(), stock.getData()));
-//
-//            orderItemSum += orderItem.getAmount();
-//          }
-//
-//          // Prepare the response object
-//          NewOrderResponse res =
-//              newOrderResponse(
-//                  req,
-//                  order.getId(),
-//                  order.getEntryDate(),
-//                  warehouse.getSalesTax(),
-//                  district.getSalesTax(),
-//                  customer.getCredit(),
-//                  customer.getDiscount(),
-//                  customer.getLastName());
-//          res.setOrderId(order.getId());
-//          res.setOrderTimestamp(order.getEntryDate());
-//          res.setTotalAmount(
-//              calcOrderTotal(
-//                  orderItemSum,
-//                  customer.getDiscount(),
-//                  warehouse.getSalesTax(),
-//                  district.getSalesTax()));
-//          res.setOrderItems(responseLines);
-//
-//          return res;
-//        });
+    // prepare response object
+    NewOrderResponse res = newOrderResponse(req,
+            order.getId(),
+            order.getEntryDate(),
+            warehouseData.getSalesTax(),
+            districtData.getSalesTax(),
+            customerData.getCredit(),
+            customerData.getDiscount(),
+            customerData.getLastName());
+    res.setTotalAmount(calcOrderTotal(orderItemSum, customerData.getDiscount(), warehouseData.getSalesTax(), districtData.getSalesTax()));
+    res.setOrderItems(dtoItems);
+    return res;
   }
+
 
   private String getRandomDistrictInfo(StockData stock) {
     return randomDistrictData(
-        List.of(
-            stock.getDist01(),
-            stock.getDist02(),
-            stock.getDist03(),
-            stock.getDist04(),
-            stock.getDist05(),
-            stock.getDist06(),
-            stock.getDist07(),
-            stock.getDist08(),
-            stock.getDist09(),
-            stock.getDist10()));
-  }
-
-  private static NewOrderResponseItem newOrderResponseLine(OrderItemData item) {
-    NewOrderResponseItem requestLine = new NewOrderResponseItem();
-//    requestLine.setSupplyingWarehouseId(item.getSupplyingWarehouseId());
-//    requestLine.setItemId(item.getProductId());
-//    requestLine.setItemPrice(0);
-//    requestLine.setAmount(item.getAmount());
-//    requestLine.setQuantity(item.getQuantity());
-//    requestLine.setStockQuantity(0);
-//    requestLine.setBrandGeneric(null);
-    return requestLine;
+            List.of(
+                    stock.getDist01(),
+                    stock.getDist02(),
+                    stock.getDist03(),
+                    stock.getDist04(),
+                    stock.getDist05(),
+                    stock.getDist06(),
+                    stock.getDist07(),
+                    stock.getDist08(),
+                    stock.getDist09(),
+                    stock.getDist10()));
   }
 }
