@@ -205,7 +205,9 @@ public class MsResourcesController implements ResourcesController {
       public DistrictGUI(DistrictData district) {
         this.id = district.getId();
         this.warehouseId = district.getWarehouse().getId();
-        this.orders = district.getOrders().stream().map(c->
+        this.orders = district.getOrders().entrySet().stream()
+                .map(c-> c.getValue())
+                .map(c ->
                 new OrderGUI(c.getId(),
                         c.getDistrictRef().getId(),
                         c.getCustomerRef().getId(),

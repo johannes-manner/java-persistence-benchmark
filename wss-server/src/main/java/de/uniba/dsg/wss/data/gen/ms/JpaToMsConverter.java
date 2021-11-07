@@ -135,7 +135,6 @@ public class JpaToMsConverter {
 
   /**
    * Districts are now also added to the warehouse (bidirectional relationship)
-   * TODO rethink - quite complicated ...
    *
    * @param ws
    * @return
@@ -311,8 +310,8 @@ public class JpaToMsConverter {
 
           orders.put(order.getId(), order);
           // referential integrity
-          district.getOrders().add(order);
-          this.customers.get(order.getCustomerRef().getId()).getOrderRefs().add(order);
+          district.getOrders().put(order.getId(), order);
+          this.customers.get(order.getCustomerRef().getId()).getOrderRefs().put(order.getId(), order);
         }
       }
     }
@@ -333,6 +332,7 @@ public class JpaToMsConverter {
                     i.getNumber(),
                     i.getDeliveryDate(),
                     i.getQuantity(),
+                    0, // ok for this initial values
                     i.getAmount(),
                     i.getDistInfo()
             );

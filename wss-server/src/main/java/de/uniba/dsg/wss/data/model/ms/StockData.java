@@ -8,6 +8,8 @@ package de.uniba.dsg.wss.data.model.ms;
  */
 public class StockData extends BaseData {
 
+  public static int INCREASE_QUANTITY = 10;
+
   private final WarehouseData warehouseRef;
   private final ProductData productRef;
 
@@ -129,7 +131,7 @@ public class StockData extends BaseData {
       if (this.quantity < quantity) {
         // avoid permanent out of stock scenarios, but let this order fail and retry
         // replace the NewOrderService#determineNewStockQuantity functionality
-        this.quantity += 91;
+        this.quantity += INCREASE_QUANTITY;
         return false;
       }
       this.quantity -= quantity;

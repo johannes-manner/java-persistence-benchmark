@@ -3,6 +3,8 @@ package de.uniba.dsg.wss.data.model.ms;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A customer of the wholesale supplier.
@@ -12,7 +14,7 @@ import java.util.List;
 public class CustomerData extends PersonData {
 
   private final DistrictData districtRef;
-  private final List<OrderData> orderRefs;
+  private final Map<String, OrderData> orderRefs;
   private final List<PaymentData> paymentRefs;
 
   private final LocalDateTime since;
@@ -53,7 +55,7 @@ public class CustomerData extends PersonData {
     this.paymentCount = paymentCount;
     this.deliveryCount = deliveryCount;
     this.data = data;
-    this.orderRefs = new ArrayList<>();
+    this.orderRefs = new ConcurrentHashMap<>();
     this.paymentRefs = new ArrayList<>();
   }
 
@@ -97,7 +99,7 @@ public class CustomerData extends PersonData {
     return data;
   }
 
-  public List<OrderData> getOrderRefs(){
+  public Map<String, OrderData> getOrderRefs(){
     return this.orderRefs;
   }
 

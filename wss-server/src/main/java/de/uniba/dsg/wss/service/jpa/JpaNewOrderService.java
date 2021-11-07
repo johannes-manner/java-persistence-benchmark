@@ -73,7 +73,6 @@ public class JpaNewOrderService extends NewOrderService {
     order.setCarrier(null);
     order.setEntryDate(LocalDateTime.now());
     order.setItemCount(req.getItems().size());
-    // TODO ask benedikt why this is important
     // We're not all local if any item is supplied by a non-home warehouse
     order.setAllLocal(
         req.getItems().stream()

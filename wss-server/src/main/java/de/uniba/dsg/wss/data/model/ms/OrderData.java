@@ -24,7 +24,7 @@ public class OrderData extends BaseData{
 
   private final List<OrderItemData> items;
 
-  public OrderData(DistrictData districtRef, CustomerData customerRef, LocalDateTime entryDate, int itemCount) {
+  public OrderData(DistrictData districtRef, CustomerData customerRef, LocalDateTime entryDate, int itemCount, boolean allLocal) {
     super();
     this.districtRef = districtRef;
     this.customerRef = customerRef;
@@ -32,8 +32,7 @@ public class OrderData extends BaseData{
     this.carrierRef = null;
     this.entryDate = entryDate;
     this.itemCount = itemCount;
-    // TODO
-    this.allLocal = false;
+    this.allLocal = allLocal;
     this.fulfilled = false;
     this.items = new ArrayList<>();
   }

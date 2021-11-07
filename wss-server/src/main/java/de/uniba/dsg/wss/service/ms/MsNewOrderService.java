@@ -8,14 +8,12 @@ import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequestItem;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponseItem;
 import de.uniba.dsg.wss.service.NewOrderService;
-import one.microstream.storage.embedded.types.EmbeddedStorageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.TransactionalException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,88 +25,51 @@ public class MsNewOrderService extends NewOrderService {
 
   private static final Logger LOG = LogManager.getLogger(MsNewOrderService.class);
 
-  private static final int MAX_RETRIES = 5;
+  public static int MAX_RETRIES = 5;
   private static final long RETRY_TIME = 100;
   private final DataConsistencyManager consistencyManager;
-  private final EmbeddedStorageManager storageManager;
   private final MsDataRoot dataRoot;
 
   @Autowired
-  public MsNewOrderService(DataConsistencyManager consistencyManager, EmbeddedStorageManager storageManager, MsDataRoot dataRoot){
+  public MsNewOrderService(DataConsistencyManager consistencyManager, MsDataRoot dataRoot){
     this.consistencyManager = consistencyManager;
-    this.storageManager = storageManager;
     this.dataRoot = dataRoot;
   }
 
   @Override
-  public NewOrderResponse process(NewOrderRequest req) {
-
-    // get basic data for transaction
-    WarehouseData warehouseData = dataRoot.getWarehouses().get(req.getWarehouseId());
-    DistrictData districtData = warehouseData.getDistricts().get(req.getDistrictId());
-    CustomerData customerData = dataRoot.getCustomers().get(req.getCustomerId());
-
-    if(warehouseData == null || districtData == null || customerData == null) {
-      throw new IllegalArgumentException();
-    }
-
-    // Get all supplying warehouses and products to ensure no invalid ids have been provided
-    // optimization: checking if stock is available for warehouse and product
-    List<StockUpdateDTO> stockUpdates = new ArrayList<>();
-    for(NewOrderRequestItem item : req.getItems()) {
-      StockData stock = dataRoot.getStocks().get(item.getSupplyingWarehouseId()+item.getProductId());
-      if(stock == null) {
-        throw new IllegalArgumentException();
-      }
-      StockUpdateDTO stockUpdate = new StockUpdateDTO(stock, item.getQuantity());
-      stockUpdates.add(stockUpdate);
-    }
-
-    // Implementing retry mechanism (TODO refactor in an own class?)
-    boolean updateSuccessful = false;
+  public NewOrderResponse process(NewOrderRequest req) throws MsTransactionException {
+    OrderData storedOrder = null;
+    // TODO retry manager?
     for(int i = 0 ; i < MAX_RETRIES; i++) {
-      // Update stock entries (CriticalSection!)
-      updateSuccessful = this.consistencyManager.updateStock(stockUpdates);
-      if(updateSuccessful){
-        break;
-      } else {
-        Uninterruptibles.sleepUninterruptibly(RETRY_TIME, TimeUnit.MILLISECONDS);
+      if(storedOrder == null) {
+        try {
+          // synchronized access
+          storedOrder = this.processOrderRequest(req);
+          break;
+        } catch (MsTransactionException e) {
+          Uninterruptibles.sleepUninterruptibly(RETRY_TIME, TimeUnit.MILLISECONDS);
+        }
       }
     }
 
-    if(updateSuccessful == false){
+    // method stack memory
+    NewOrderResponse res = getNewOrderResponse(req, storedOrder);
+    return res;
+  }
+
+  private NewOrderResponse getNewOrderResponse(NewOrderRequest req, OrderData storedOrder) {
+    if(storedOrder == null){
       LOG.info("Cancel order processing - retries exceeded");
-      // TODO make this better
-      throw new TransactionalException("Can't process order", null);
+      throw new MsTransactionException("Can't process order");
     }
 
-    // create order
-    OrderData order = new OrderData(districtData,
-            customerData,
-            LocalDateTime.now(),
-            stockUpdates.size()
-            );
-
-    // create order items
-    List<OrderItemData> orderItems = new ArrayList<>();
+    // create return items
     int i=0;
     // create return dtos
     double orderItemSum = 0;
     List<NewOrderResponseItem> dtoItems = new ArrayList<>();
 
-    for(StockUpdateDTO stockUpdateDTO : stockUpdates) {
-      i++;
-      OrderItemData orderItem = new OrderItemData(order,
-              stockUpdateDTO.getStockData().getProductRef(),
-              stockUpdateDTO.getStockData().getWarehouseRef(),
-              i,
-              null,
-              stockUpdateDTO.getQuantity(),
-              stockUpdateDTO.getQuantity() * stockUpdateDTO.getStockData().getProductRef().getPrice(),
-              getRandomDistrictInfo(stockUpdateDTO.getStockData()));
-
-      // add to business object
-      orderItems.add(orderItem);
+    for(OrderItemData orderItem : storedOrder.getItems()) {
 
       // add to response object
       dtoItems.add(new NewOrderResponseItem(orderItem.getSupplyingWarehouseRef().getId(),
@@ -117,32 +78,66 @@ public class MsNewOrderService extends NewOrderService {
               orderItem.getProductRef().getPrice(),
               orderItem.getAmount(),
               orderItem.getQuantity(),
-              // TODO ask why
-              0,
-              determineBrandGeneric(orderItem.getProductRef().getData(), stockUpdateDTO.getStockData().getData())));
+              orderItem.getLeftQuantityInStock(),
+              determineBrandGeneric(orderItem.getProductRef().getData(), "stock data")));
+      i++;
       orderItemSum += orderItem.getAmount();
     }
-
-    // referential integrity
-    // until now - all the state is stack state of the method
-    order.getItems().addAll(orderItems);
-
-    // add the order to the object graph - concurrent hash map :)
-    this.dataRoot.getOrders().put(order.getId(), order);
 
 
     // prepare response object
     NewOrderResponse res = newOrderResponse(req,
-            order.getId(),
-            order.getEntryDate(),
-            warehouseData.getSalesTax(),
-            districtData.getSalesTax(),
-            customerData.getCredit(),
-            customerData.getDiscount(),
-            customerData.getLastName());
-    res.setTotalAmount(calcOrderTotal(orderItemSum, customerData.getDiscount(), warehouseData.getSalesTax(), districtData.getSalesTax()));
+            storedOrder.getId(),
+            storedOrder.getEntryDate(),
+            storedOrder.getDistrictRef().getWarehouse().getSalesTax(),
+            storedOrder.getDistrictRef().getSalesTax(),
+            storedOrder.getCustomerRef().getCredit(),
+            storedOrder.getCustomerRef().getDiscount(),
+            storedOrder.getCustomerRef().getLastName());
+    res.setTotalAmount(calcOrderTotal(orderItemSum, storedOrder.getCustomerRef().getDiscount(), storedOrder.getDistrictRef().getWarehouse().getSalesTax(), storedOrder.getDistrictRef().getSalesTax()));
     res.setOrderItems(dtoItems);
     return res;
+  }
+
+  private OrderData processOrderRequest(NewOrderRequest req) throws MsTransactionException{
+    // get basic data for transaction
+    WarehouseData warehouseData = dataRoot.getWarehouses().get(req.getWarehouseId());
+    CustomerData customerData = dataRoot.getCustomers().get(req.getCustomerId());
+    if(warehouseData == null || customerData == null) {
+      throw new IllegalArgumentException();
+    }
+    DistrictData districtData = warehouseData.getDistricts().get(req.getDistrictId());
+    if(districtData == null) {
+      throw new IllegalArgumentException();
+    }
+
+    // Get all supplying warehouses and products to ensure no invalid ids have been provided
+    // optimization: checking if stock is available for warehouse and product
+    List<StockUpdateDTO> stockUpdates = new ArrayList<>();
+    // Checks if all products come from the requested warehouse
+    boolean allLocal = true;
+    for(NewOrderRequestItem item : req.getItems()) {
+      StockData stock = dataRoot.getStocks().get(item.getSupplyingWarehouseId()+item.getProductId());
+      if(stock == null) {
+        throw new IllegalArgumentException();
+      }
+      if(req.getWarehouseId().equals(stock.getWarehouseRef().getId()) == false){
+        allLocal = false;
+      }
+      StockUpdateDTO stockUpdate = new StockUpdateDTO(stock, item.getQuantity());
+      stockUpdates.add(stockUpdate);
+    }
+
+
+    // create order
+    OrderData order = new OrderData(districtData,
+            customerData,
+            LocalDateTime.now(),
+            stockUpdates.size(),
+            allLocal
+    );
+
+    return this.consistencyManager.storeOrder(order,stockUpdates);
   }
 
 

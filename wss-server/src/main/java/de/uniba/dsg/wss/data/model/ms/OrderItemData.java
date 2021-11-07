@@ -17,24 +17,25 @@ public class OrderItemData extends BaseData {
   private final int number;
   private final LocalDateTime deliveryDate;
   private final int quantity;
+  private final int leftQuantityInStock;
   private final double amount;
   private final String distInfo;
 
-  public OrderItemData(OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, LocalDateTime deliveryDate, int quantity, double amount, String distInfo) {
+  public OrderItemData(OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, LocalDateTime deliveryDate, int quantity, int leftQuantityInStock, double amount, String distInfo) {
     super();
     this.orderRef = orderRef;
     this.productRef = productRef;
     this.supplyingWarehouseRef = supplyingWarehouseRef;
     this.number = number;
-    // TODO
     this.deliveryDate = deliveryDate;
     this.quantity = quantity;
+    this.leftQuantityInStock = leftQuantityInStock;
     this.amount = amount;
     this.distInfo = distInfo;
   }
 
   // JPA conversion constructor
-  public OrderItemData(String id, OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, LocalDateTime deliveryDate, int quantity, double amount, String distInfo) {
+  public OrderItemData(String id, OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, LocalDateTime deliveryDate, int quantity, int leftQuantityInStock, double amount, String distInfo) {
     super(id);
     this.orderRef = orderRef;
     this.productRef = productRef;
@@ -42,6 +43,7 @@ public class OrderItemData extends BaseData {
     this.number = number;
     this.deliveryDate = deliveryDate;
     this.quantity = quantity;
+    this.leftQuantityInStock = leftQuantityInStock;
     this.amount = amount;
     this.distInfo = distInfo;
   }
@@ -78,4 +80,7 @@ public class OrderItemData extends BaseData {
     return distInfo;
   }
 
+  public int getLeftQuantityInStock() {
+    return leftQuantityInStock;
+  }
 }

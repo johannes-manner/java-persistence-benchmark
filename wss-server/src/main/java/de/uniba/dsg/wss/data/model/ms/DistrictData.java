@@ -2,6 +2,8 @@ package de.uniba.dsg.wss.data.model.ms;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A district is one of ten areas supplied by a specific {@link WarehouseData warehouse}. Each
@@ -20,7 +22,7 @@ public class DistrictData extends BaseData {
   private final double yearToDateBalance;
 
   private final List<CustomerData> customerRefs;
-  private final List<OrderData> orderRefs;
+  private final Map<String, OrderData> orderRefs;
 
   public DistrictData(String id,
                       WarehouseData warehouse,
@@ -35,7 +37,7 @@ public class DistrictData extends BaseData {
     this.salesTax = salesTax;
     this.yearToDateBalance = yearToDateBalance;
     this.customerRefs = new ArrayList<>();
-    this.orderRefs = new ArrayList<>();
+    this.orderRefs = new ConcurrentHashMap<>();
   }
 
   public WarehouseData getWarehouse() {
@@ -62,7 +64,7 @@ public class DistrictData extends BaseData {
     return this.customerRefs;
   }
 
-  public List<OrderData> getOrders(){
+  public Map<String, OrderData> getOrders(){
     return this.orderRefs;
   }
 

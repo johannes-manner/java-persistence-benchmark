@@ -1,26 +1,20 @@
 package de.uniba.dsg.wss.data.access.ms;
 
+import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
+import de.uniba.dsg.wss.data.model.ms.OrderData;
+import de.uniba.dsg.wss.data.model.ms.OrderItemData;
+import de.uniba.dsg.wss.service.ms.MsTransactionException;
 import de.uniba.dsg.wss.service.ms.StockUpdateDTO;
+import one.microstream.storage.types.StorageManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Helper for running JACIS transactions. While the {@link} provides various
- * convenience methods for running transactions, some necessary in the context of this application
- * are missing. For example, the container has no method which allows a transaction with a return
- * value being retried for a certain amount of times.
- *
- * <p>An instance of this class can be used to execute exactly one transaction. Using any of the
- * {@code commit(...)} methods will result in the manager from changing its internal state to closed
- * before returning, resulting in an {@link IllegalStateException} being thrown upon any further
- * calls to any state-altering methods of the instance.
- *
- * @author Benedikt Full
- */
 // Singleton by default
 @Component
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
@@ -31,11 +25,18 @@ public class DataConsistencyManager {
   // low level synchronization here - one lock for updating the overall order
   private final Object stockLock = new Object();
 
+  private final StorageManager storageManger;
+  private final MsDataRoot dataRoot;
 
-  // TODO document and remove logs when tested the stuff
-  public boolean updateStock(List<StockUpdateDTO> stockUpdates) {
+  @Autowired
+  public DataConsistencyManager(StorageManager storageManager, MsDataRoot dataRoot) {
+    this.storageManger = storageManager;
+    this.dataRoot = dataRoot;
+  }
+
+  private List<OrderItemData> updateStock(OrderData order, List<StockUpdateDTO> stockUpdates) {
     synchronized (stockLock) {
-
+      List<OrderItemData> orderItemList = new ArrayList<>();
       int i = 0;
       for(i = 0 ; i < stockUpdates.size() ; i++) {
         // update all the items, if an update fails, compensate the changes
@@ -44,7 +45,18 @@ public class DataConsistencyManager {
           LOG.info("Out of stock " + stockUpdate.getStockData().getId());
           break;
         } else {
-          LOG.info("Stock operation sucessfull for stock entry " + stockUpdate.getStockData().getId());
+          OrderItemData orderItem = new OrderItemData(order,
+                  stockUpdate.getStockData().getProductRef(),
+                  stockUpdate.getStockData().getWarehouseRef(),
+                  i,
+                  null,
+                  stockUpdate.getQuantity(),
+                  stockUpdate.getStockData().getQuantity(),
+                  stockUpdate.getQuantity() * stockUpdate.getStockData().getProductRef().getPrice(),
+                  // TODO random dist info
+                  stockUpdate.getStockData().getDist01());
+          orderItemList.add(orderItem);
+//          LOG.info("Stock operation successful for stock entry " + stockUpdate.getStockData().getId());
         }
       }
 
@@ -55,9 +67,36 @@ public class DataConsistencyManager {
           stockUpdate.getStockData().undoReduceQuantityOperation(stockUpdate.getQuantity());
           LOG.info("Undo stock operation for stock entry " + stockUpdate.getStockData().getId());
         }
-        return false;
+        return List.of();
       }
-      return true;
+      return orderItemList;
+    }
+  }
+
+  public OrderData storeOrder(OrderData order, List<StockUpdateDTO> stockUpdates) throws MsTransactionException{
+
+    synchronized (this.storageManger){
+      List<OrderItemData> itemList = this.updateStock(order, stockUpdates);
+      if(itemList.isEmpty()){
+        throw new MsTransactionException("Order Item Update failed");
+      }
+      order.getItems().addAll(itemList);
+
+      this.dataRoot.getOrders().put(order.getId(), order);
+
+      // referential integrity (customer and district)
+      order.getDistrictRef().getOrders().put(order.getId(), order);
+      order.getCustomerRef().getOrderRefs().put(order.getId(), order);
+
+      // A single store is faster as making a store for each object separately
+      this.storageManger.storeRoot();
+      return order;
+    }
+  }
+
+  public void storeRoot(){
+    synchronized (this.storageManger){
+      this.storageManger.storeRoot();
     }
   }
 }
