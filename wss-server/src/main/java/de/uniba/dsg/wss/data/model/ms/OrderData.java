@@ -11,16 +11,16 @@ import java.util.List;
  * @see OrderItemData
  * @author Benedikt Full
  */
-public class OrderData extends BaseData{
+public class OrderData extends BaseData implements Comparable<OrderData>{
 
   private final DistrictData districtRef;
   private final CustomerData customerRef;
-  private final CarrierData carrierRef;
+  private CarrierData carrierRef;
 
   private final LocalDateTime entryDate;
   private final int itemCount;
   private final boolean allLocal;
-  private final boolean fulfilled;
+  private boolean fulfilled;
 
   private final List<OrderItemData> items;
 
@@ -28,8 +28,6 @@ public class OrderData extends BaseData{
     super();
     this.districtRef = districtRef;
     this.customerRef = customerRef;
-    // TODO
-    this.carrierRef = null;
     this.entryDate = entryDate;
     this.itemCount = itemCount;
     this.allLocal = allLocal;
@@ -58,10 +56,6 @@ public class OrderData extends BaseData{
     return customerRef;
   }
 
-  public CarrierData getCarrierRef() {
-    return carrierRef;
-  }
-
   public LocalDateTime getEntryDate() {
     return entryDate;
   }
@@ -74,11 +68,42 @@ public class OrderData extends BaseData{
     return allLocal;
   }
 
-  public boolean isFulfilled() {
-    return fulfilled;
-  }
-
   public List<OrderItemData> getItems() {
     return items;
+  }
+
+  @Override
+  public int compareTo(OrderData o) {
+    return this.entryDate.compareTo(o.entryDate);
+  }
+
+  public CarrierData getCarrierRef() {
+    synchronized (this.id) {
+      return carrierRef;
+    }
+  }
+
+  public void updateCarrier(CarrierData carrier) {
+    synchronized (this.id) {
+      this.carrierRef = carrier;
+    }
+  }
+
+  public void setAsFulfilled() {
+    synchronized (this.id) {
+      this.fulfilled = true;
+    }
+  }
+
+  public boolean isNotFulfilled(){
+    synchronized (this.id) {
+      return !fulfilled;
+    }
+  }
+
+  public boolean isFulfilled() {
+    synchronized (this.id) {
+      return fulfilled;
+    }
   }
 }

@@ -15,19 +15,19 @@ public class OrderItemData extends BaseData {
   private final WarehouseData supplyingWarehouseRef;
 
   private final int number;
-  private final LocalDateTime deliveryDate;
   private final int quantity;
   private final int leftQuantityInStock;
-  private final double amount;
   private final String distInfo;
+  private final double amount;
 
-  public OrderItemData(OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, LocalDateTime deliveryDate, int quantity, int leftQuantityInStock, double amount, String distInfo) {
+  private LocalDateTime deliveryDate;
+
+  public OrderItemData(OrderData orderRef, ProductData productRef, WarehouseData supplyingWarehouseRef, int number, int quantity, int leftQuantityInStock, double amount, String distInfo) {
     super();
     this.orderRef = orderRef;
     this.productRef = productRef;
     this.supplyingWarehouseRef = supplyingWarehouseRef;
     this.number = number;
-    this.deliveryDate = deliveryDate;
     this.quantity = quantity;
     this.leftQuantityInStock = leftQuantityInStock;
     this.amount = amount;
@@ -64,16 +64,8 @@ public class OrderItemData extends BaseData {
     return number;
   }
 
-  public LocalDateTime getDeliveryDate() {
-    return deliveryDate;
-  }
-
   public int getQuantity() {
     return quantity;
-  }
-
-  public double getAmount() {
-    return amount;
   }
 
   public String getDistInfo() {
@@ -82,5 +74,21 @@ public class OrderItemData extends BaseData {
 
   public int getLeftQuantityInStock() {
     return leftQuantityInStock;
+  }
+
+  public double getAmount() {
+    return amount;
+  }
+
+  public LocalDateTime getDeliveryDate() {
+    synchronized (this.id) {
+      return deliveryDate;
+    }
+  }
+
+  public void updateDeliveryDate() {
+    synchronized (this.id){
+      this.deliveryDate = LocalDateTime.now();
+    }
   }
 }

@@ -117,6 +117,31 @@ public abstract class MicroStreamServiceTest {
       districtData.getCustomers().add(customerData);
     }
 
+    Map<String, OrderData> orders = new HashMap<>();
+    for (int i = 0 ; i < 2*DISTRICTS; i++){
+      OrderData order = new OrderData("O" + i,
+              districts.get("D" + (i%DISTRICTS)),
+              customers.get("C" + (i%DISTRICTS)),
+              null,
+              LocalDateTime.of(2021,10,i+1,0,0),
+              1,
+              true,
+              false);
+      order.getItems().add(new OrderItemData(order,
+              products.get("P" + (i%PRODUCTS)),
+              warehouses.get("W0"),
+              1,
+              2,
+              4,
+              12.00,
+              ""));
+      districts.get("D" + (i%DISTRICTS)).getOrders().put(order.getId(), order);
+      customers.get("C" + (i%DISTRICTS)).getOrderRefs().put(order.getId(), order);
+      orders.put(order.getId(), order);
+    }
+
+    CarrierData carrier = new CarrierData("CC0", "DHL", "", new AddressData("","","","",""));
+
     // remove all data from data root - cannot instantiate another root object since then I get null pointers in the logic classes
     // bean has to be the same object
     this.msDataRoot.getOrders().clear();
@@ -124,11 +149,14 @@ public abstract class MicroStreamServiceTest {
     this.msDataRoot.getWarehouses().clear();
     this.msDataRoot.getStocks().clear();
     this.msDataRoot.getCustomers().clear();
+    this.msDataRoot.getCarriers().clear();
 
     // add all data to data root :)
     this.msDataRoot.getWarehouses().putAll(warehouses);
     this.msDataRoot.getStocks().putAll(stocks);
     this.msDataRoot.getCustomers().putAll(customers);
+    this.msDataRoot.getOrders().putAll(orders);
+    this.msDataRoot.getCarriers().put(carrier.getId(), carrier);
 
     this.storageManager.setRoot(msDataRoot);
     this.storageManager.storeRoot();

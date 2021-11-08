@@ -21,8 +21,8 @@ public class CustomerData extends PersonData {
   private final String credit;
   private final double creditLimit;
   private final double discount;
-  private final int deliveryCount;
 
+  private int deliveryCount;
   private String data;
   private double balance;
   private double yearToDatePayment;
@@ -101,10 +101,6 @@ public class CustomerData extends PersonData {
     return discount;
   }
 
-  public int getDeliveryCount() {
-    return deliveryCount;
-  }
-
   public Map<String, OrderData> getOrderRefs(){
     return this.orderRefs;
   }
@@ -116,6 +112,12 @@ public class CustomerData extends PersonData {
   public void decreaseBalance(double amount) {
     synchronized (this.id){
       balance -= amount;
+    }
+  }
+
+  public void increaseBalance(double amount) {
+    synchronized (this.id){
+      balance += amount;
     }
   }
 
@@ -146,6 +148,18 @@ public class CustomerData extends PersonData {
   public int getPaymentCount() {
     synchronized (this.id) {
       return paymentCount;
+    }
+  }
+
+  public void increaseDeliveryCount() {
+    synchronized (this.id){
+      this.deliveryCount++;
+    }
+  }
+
+  public int getDeliveryCount() {
+    synchronized (this.id) {
+      return deliveryCount;
     }
   }
 

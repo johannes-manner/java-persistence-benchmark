@@ -1,15 +1,6 @@
 package de.uniba.dsg.wss.service.jpa;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import de.uniba.dsg.wss.data.access.jpa.CarrierRepository;
-import de.uniba.dsg.wss.data.access.jpa.CustomerRepository;
-import de.uniba.dsg.wss.data.access.jpa.DistrictRepository;
-import de.uniba.dsg.wss.data.access.jpa.OrderRepository;
-import de.uniba.dsg.wss.data.access.jpa.ProductRepository;
-import de.uniba.dsg.wss.data.access.jpa.WarehouseRepository;
+import de.uniba.dsg.wss.data.access.jpa.*;
 import de.uniba.dsg.wss.data.gen.jpa.JpaDataGenerator;
 import de.uniba.dsg.wss.data.model.jpa.OrderEntity;
 import de.uniba.dsg.wss.data.model.jpa.OrderItemEntity;
@@ -21,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 public class JpaDeliveryServiceIntegrationTests {
@@ -53,9 +46,8 @@ public class JpaDeliveryServiceIntegrationTests {
     order.getItems().forEach(i -> i.setDeliveryDate(null));
     orderRepository.save(order);
 
-    request = new DeliveryRequest();
-    request.setWarehouseId(warehouseRepository.findAll().get(0).getId());
-    request.setCarrierId(carrierRepository.findAll().get(0).getId());
+    request = new DeliveryRequest(warehouseRepository.findAll().get(0).getId(),
+      carrierRepository.findAll().get(0).getId());
 
     deliveryService =
         new JpaDeliveryService(

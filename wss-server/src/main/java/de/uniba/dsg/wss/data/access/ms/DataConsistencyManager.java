@@ -47,7 +47,6 @@ public class DataConsistencyManager {
                   stockUpdate.getStockData().getProductRef(),
                   stockUpdate.getStockData().getWarehouseRef(),
                   i,
-                  null,
                   stockUpdate.getQuantity(),
                   stockUpdate.getStockData().getQuantity(),
                   stockUpdate.getQuantity() * stockUpdate.getStockData().getProductRef().getPrice(),
@@ -128,17 +127,47 @@ public class DataConsistencyManager {
     }
   }
 
+  public void deliverOldestOrders(List<OrderData> oldestOrderForEachDistrict, CarrierData carrier) {
+    synchronized (this.storageManger) {
+      for(OrderData order : oldestOrderForEachDistrict) {
+        // in cases where two terminal worker update the same oldestOrders in parallel and
+        // they are both competing for the storageManager lock
+        if(order.isFulfilled()){
+          continue;
+        }
+        synchronized (order.getId()) {
+          // update carrier information
+          order.updateCarrier(carrier);
+          // update fulfillment status
+          order.setAsFulfilled();
+        }
+        // compute amount of order
+        double amount = 0;
+        for(OrderItemData itemData : order.getItems()) {
+          itemData.updateDeliveryDate();
+          amount += itemData.getAmount();
+        }
+        CustomerData customer = order.getCustomerRef();
+        synchronized (customer.getId()) {
+          customer.increaseBalance(amount);
+          customer.increaseDeliveryCount();
+        }
+      }
+      this.storageManger.storeRoot();
+    }
+  }
   // COPIED FROM PaymentService
+
   protected boolean customerHasBadCredit(String customerCredit) {
     return "BC".equals(customerCredit);
   }
-
   // COPIED FROM PaymentService
   protected String buildNewCustomerData(
           String customerId, String warehouseId, String districtId, double amount, String oldData) {
     String newData = "" + customerId + districtId + warehouseId + amount;
     return newData + oldData.substring(newData.length());
   }
+
   public void storeRoot(){
     synchronized (this.storageManger){
       this.storageManger.storeRoot();

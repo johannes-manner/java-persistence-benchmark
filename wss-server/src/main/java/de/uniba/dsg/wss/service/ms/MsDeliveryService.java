@@ -1,5 +1,10 @@
 package de.uniba.dsg.wss.service.ms;
 
+import de.uniba.dsg.wss.data.access.ms.DataConsistencyManager;
+import de.uniba.dsg.wss.data.model.ms.CarrierData;
+import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
+import de.uniba.dsg.wss.data.model.ms.OrderData;
+import de.uniba.dsg.wss.data.model.ms.WarehouseData;
 import de.uniba.dsg.wss.data.transfer.messages.DeliveryRequest;
 import de.uniba.dsg.wss.data.transfer.messages.DeliveryResponse;
 import de.uniba.dsg.wss.service.DeliveryService;
@@ -7,82 +12,48 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
 public class MsDeliveryService extends DeliveryService {
 
-//  private final JacisContainer container;
-//  private final JacisStore<String, WarehouseData> warehouseStore;
-//  private final JacisStore<String, DistrictData> districtStore;
-//  private final JacisStore<String, CustomerData> customerStore;
-//  private final JacisStore<String, OrderData> orderStore;
-//  private final JacisStore<String, OrderItemData> orderItemStore;
-//  private final JacisStore<String, CarrierData> carrierStore;
+  private final DataConsistencyManager consistencyManager;
+  private final MsDataRoot dataRoot;
 
   @Autowired
-  public MsDeliveryService(
-//      JacisContainer container,
-//      JacisStore<String, WarehouseData> warehouseStore,
-//      JacisStore<String, DistrictData> districtStore,
-//      JacisStore<String, CustomerData> customerStore,
-//      JacisStore<String, OrderData> orderStore,
-//      JacisStore<String, OrderItemData> orderItemStore,
-//      JacisStore<String, CarrierData> carrierStore) {
-//    this.container = container;
-//    this.warehouseStore = warehouseStore;
-//    this.districtStore = districtStore;
-//    this.customerStore = customerStore;
-//    this.orderStore = orderStore;
-//    this.orderItemStore = orderItemStore;
-//    this.carrierStore = carrierStore;
-  ){
+  public MsDeliveryService(DataConsistencyManager consistencyManager, MsDataRoot dataRoot) {
+    this.consistencyManager = consistencyManager;
+    this.dataRoot = dataRoot;
   }
 
   @Override
   public DeliveryResponse process(DeliveryRequest req) {
-      return null;
-//    TransactionManager transactionManager = new TransactionManager(container, 5, 100);
-//    return transactionManager.commit(
-//        () -> {
-//          // Find warehouse and carrier to be employed for delivery
-//          WarehouseData warehouse = warehouseStore.getReadOnly(req.getWarehouseId());
-//          List<DistrictData> districts =
-//              districtStore
-//                  .streamReadOnly(d -> d.getWarehouseId().equals(warehouse.getId()))
-//                  .parallel()
-//                  .collect(Collectors.toList());
-//          CarrierData carrier = carrierStore.getReadOnly(req.getCarrierId());
-//
-//          // Find an order for each district (the oldest unfulfilled order)
-//          List<String> orderIds =
-//              districts.parallelStream()
-//                  .map(
-//                      d ->
-//                          orderStore
-//                              .streamReadOnly(
-//                                  o -> o.getDistrictId().equals(d.getId()) && !o.isFulfilled())
-//                              .parallel()
-//                              .min(Comparator.comparing(OrderData::getEntryDate))
-//                              .orElse(null))
-//                  .filter(Objects::nonNull)
-//                  .map(OrderData::getId)
-//                  .collect(Collectors.toList());
-//          List<OrderData> orders =
-//              orderIds.stream().map(orderStore::get).collect(Collectors.toList());
-//
-//          // Get the order items of all orders
-//          List<OrderItemData> allOrderItems =
-//              orderItemStore.stream(i -> orderIds.contains(i.getOrderId()))
-//                  .parallel()
-//                  .collect(Collectors.toList());
-//
+
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(req.getWarehouseId());
+    CarrierData carrier = this.dataRoot.getCarriers().get(req.getCarrierId());
+
+    // Find an order for each district (the oldest unfulfilled order)
+    List<OrderData> oldestOrderForEachDistrict = warehouse.getDistricts().entrySet().stream()
+            .map(dEntry -> dEntry.getValue().getOrders().entrySet().stream()
+                    .map(oEntry -> oEntry.getValue())
+                    .filter(OrderData::isNotFulfilled)
+                    .sorted()
+                    .findFirst())
+            .filter(Optional::isPresent)
+            .map(o -> o.get())
+            .collect(Collectors.toList());
+
+    // update fulfillment status
+    // update carrier information
+    // for each order item, set delivery date to now and sum amount
+    // Update customer balance and delivery count
+    this.consistencyManager.deliverOldestOrders(oldestOrderForEachDistrict, carrier);
 //          // Actually deliver the orders
 //          for (OrderData order : orders) {
 //            double amountSum = 0;
-//            // Update fulfillment status and carrier of order
-//            order.setCarrierId(carrier.getId());
-//            order.setFulfilled(true);
-//            orderStore.update(order.getId(), order);
 //
 //            // For each order item, set delivery date to now and sum amount
 //            List<OrderItemData> orderItems =
@@ -103,7 +74,6 @@ public class MsDeliveryService extends DeliveryService {
 //          }
 //          orderItemStore.update(allOrderItems, OrderItemData::getId);
 //
-//          return new DeliveryResponse(req);
-//        });
+    return new DeliveryResponse(req);
   }
 }
