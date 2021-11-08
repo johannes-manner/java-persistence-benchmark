@@ -51,29 +51,7 @@ public class MsDeliveryService extends DeliveryService {
     // for each order item, set delivery date to now and sum amount
     // Update customer balance and delivery count
     this.consistencyManager.deliverOldestOrders(oldestOrderForEachDistrict, carrier);
-//          // Actually deliver the orders
-//          for (OrderData order : orders) {
-//            double amountSum = 0;
-//
-//            // For each order item, set delivery date to now and sum amount
-//            List<OrderItemData> orderItems =
-//                allOrderItems.stream()
-//                    .filter(i -> i.getOrderId().equals(order.getId()))
-//                    .peek(i -> i.setDeliveryDate(LocalDateTime.now()))
-//                    .collect(Collectors.toList());
-//            if (orderItems.isEmpty()) {
-//              throw new IllegalStateException("Order has no items");
-//            }
-//            amountSum += orderItems.stream().mapToDouble(OrderItemData::getAmount).sum();
-//
-//            // Update customer balance and delivery count
-//            CustomerData customer = customerStore.get(order.getCustomerId());
-//            customer.setBalance(customer.getBalance() + amountSum);
-//            customer.setDeliveryCount(customer.getDeliveryCount() + 1);
-//            customerStore.update(customer.getId(), customer);
-//          }
-//          orderItemStore.update(allOrderItems, OrderItemData::getId);
-//
+
     return new DeliveryResponse(req);
   }
 }

@@ -1,26 +1,23 @@
 package de.uniba.dsg.wss.service.jpa;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import de.uniba.dsg.wss.data.access.jpa.CarrierRepository;
-import de.uniba.dsg.wss.data.access.jpa.CustomerRepository;
-import de.uniba.dsg.wss.data.access.jpa.OrderRepository;
-import de.uniba.dsg.wss.data.access.jpa.ProductRepository;
-import de.uniba.dsg.wss.data.access.jpa.WarehouseRepository;
+import de.uniba.dsg.wss.data.access.jpa.*;
 import de.uniba.dsg.wss.data.gen.jpa.JpaDataGenerator;
 import de.uniba.dsg.wss.data.model.jpa.CustomerEntity;
 import de.uniba.dsg.wss.data.model.jpa.OrderEntity;
 import de.uniba.dsg.wss.data.model.jpa.WarehouseEntity;
 import de.uniba.dsg.wss.data.transfer.messages.OrderStatusRequest;
 import de.uniba.dsg.wss.data.transfer.messages.OrderStatusResponse;
-import java.util.Comparator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.Comparator;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
 public class JpaOrderStatusServiceIntegrationTests {
@@ -52,11 +49,7 @@ public class JpaOrderStatusServiceIntegrationTests {
     customer = order.getCustomer();
 
     WarehouseEntity warehouse = warehouseRepository.findAll().get(0);
-    request = new OrderStatusRequest();
-    request.setWarehouseId(warehouse.getId());
-    request.setDistrictId(warehouse.getDistricts().get(0).getId());
-    request.setCustomerId(customer.getId());
-    request.setCustomerEmail(null);
+    request = new OrderStatusRequest(warehouse.getId(),warehouse.getDistricts().get(0).getId(),customer.getId(),null);
 
     orderStatusService = new JpaOrderStatusService(customerRepository, orderRepository);
   }
