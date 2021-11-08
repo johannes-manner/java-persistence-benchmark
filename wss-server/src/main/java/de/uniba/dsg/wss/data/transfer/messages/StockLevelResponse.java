@@ -7,10 +7,11 @@ public class StockLevelResponse {
   private int stockThreshold;
   private int lowStocksCount;
 
-  public StockLevelResponse(StockLevelRequest req) {
+  public StockLevelResponse(StockLevelRequest req, int lowStocksCount) {
     warehouseId = req.getWarehouseId();
     districtId = req.getDistrictId();
     stockThreshold = req.getStockThreshold();
+    this.lowStocksCount = lowStocksCount;
   }
 
   public String getWarehouseId() {

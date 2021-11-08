@@ -1,27 +1,24 @@
 package de.uniba.dsg.wss.service.jpa;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import de.uniba.dsg.wss.data.access.jpa.CarrierRepository;
-import de.uniba.dsg.wss.data.access.jpa.OrderRepository;
-import de.uniba.dsg.wss.data.access.jpa.ProductRepository;
-import de.uniba.dsg.wss.data.access.jpa.StockRepository;
-import de.uniba.dsg.wss.data.access.jpa.WarehouseRepository;
+import de.uniba.dsg.wss.data.access.jpa.*;
 import de.uniba.dsg.wss.data.gen.jpa.JpaDataGenerator;
 import de.uniba.dsg.wss.data.model.jpa.DistrictEntity;
 import de.uniba.dsg.wss.data.model.jpa.OrderEntity;
 import de.uniba.dsg.wss.data.model.jpa.WarehouseEntity;
 import de.uniba.dsg.wss.data.transfer.messages.StockLevelRequest;
 import de.uniba.dsg.wss.data.transfer.messages.StockLevelResponse;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.Comparator;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 public class JpaStockLevelServiceIntegrationTests {
@@ -59,10 +56,7 @@ public class JpaStockLevelServiceIntegrationTests {
         warehouse.getStocks().parallelStream()
             .filter(s -> productIds.contains(s.getProduct().getId()) && s.getQuantity() < threshold)
             .count();
-    request = new StockLevelRequest();
-    request.setWarehouseId(warehouse.getId());
-    request.setDistrictId(district.getId());
-    request.setStockThreshold(threshold);
+    request = new StockLevelRequest(warehouse.getId(), district.getId(),threshold);
 
     stockLevelService = new JpaStockLevelService(orderRepository, stockRepository);
   }

@@ -173,4 +173,12 @@ public class DataConsistencyManager {
       this.storageManger.storeRoot();
     }
   }
+
+  public int countStockEntriesLowerThanThreshold(List<StockData> stocks, int stockThreshold) {
+    synchronized (stockLock){
+      return (int)stocks.parallelStream()
+              .filter(s -> s.getQuantity() < stockThreshold)
+              .count();
+    }
+  }
 }

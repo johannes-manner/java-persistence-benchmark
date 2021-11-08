@@ -1,5 +1,7 @@
 package de.uniba.dsg.wss.service.ms;
 
+import de.uniba.dsg.wss.data.access.ms.DataConsistencyManager;
+import de.uniba.dsg.wss.data.model.ms.*;
 import de.uniba.dsg.wss.data.transfer.messages.StockLevelRequest;
 import de.uniba.dsg.wss.data.transfer.messages.StockLevelResponse;
 import de.uniba.dsg.wss.service.StockLevelService;
@@ -7,71 +9,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
 public class MsStockLevelService extends StockLevelService {
 
-//  private final JacisContainer container;
-//  private final JacisStore<String, WarehouseData> warehouseStore;
-//  private final JacisStore<String, DistrictData> districtStore;
-//  private final JacisStore<String, OrderData> orderStore;
-//  private final JacisStore<String, OrderItemData> orderItemStore;
-//  private final JacisStore<String, StockData> stockStore;
+  private final MsDataRoot dataRoot;
+  private final DataConsistencyManager consistencyManager;
 
   @Autowired
-  public MsStockLevelService(
-//      JacisContainer container,
-//      JacisStore<String, WarehouseData> warehouseStore,
-//      JacisStore<String, DistrictData> districtStore,
-//      JacisStore<String, OrderData> orderStore,
-//      JacisStore<String, OrderItemData> orderItemStore,
-//      JacisStore<String, StockData> stockStore) {
-//    this.container = container;
-//    this.warehouseStore = warehouseStore;
-//    this.districtStore = districtStore;
-//    this.orderStore = orderStore;
-//    this.orderItemStore = orderItemStore;
-//    this.stockStore = stockStore;
-  ){
+  public MsStockLevelService(MsDataRoot dataRoot, DataConsistencyManager consistencyManager){
+    this.dataRoot = dataRoot;
+    this.consistencyManager = consistencyManager;
   }
 
   @Override
   public StockLevelResponse process(StockLevelRequest req) {
-    return null;
-//    // Fetch warehouse and district
-//    WarehouseData warehouse = warehouseStore.getReadOnly(req.getWarehouseId());
-//    DistrictData district = districtStore.getReadOnly(req.getDistrictId());
-//    // Find the most 20 recent orders for the district
-//    List<String> orderIds =
-//        orderStore
-//            .streamReadOnly(o -> o.getDistrictId().equals(district.getId()))
-//            .parallel()
-//            .sorted(Comparator.comparing(OrderData::getEntryDate))
-//            .limit(20)
-//            .map(OrderData::getId)
-//            .collect(Collectors.toList());
-//
-//    // Find the corresponding stock objects and count the ones below the given threshold
-//    List<String> productIds =
-//        orderItemStore
-//            .streamReadOnly(i -> orderIds.contains(i.getOrderId()))
-//            .parallel()
-//            .map(OrderItemData::getProductId)
-//            .distinct()
-//            .collect(Collectors.toList());
-//    int lowStockCount =
-//        (int)
-//            stockStore
-//                .streamReadOnly(s -> s.getWarehouseId().equals(warehouse.getId()))
-//                .parallel()
-//                .filter(
-//                    s ->
-//                        productIds.contains(s.getProductId())
-//                            && s.getQuantity() < req.getStockThreshold())
-//                .count();
-//
-//    StockLevelResponse res = new StockLevelResponse(req);
-//    res.setLowStocksCount(lowStockCount);
-//    return res;
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(req.getWarehouseId());
+    DistrictData district = warehouse.getDistricts().get(req.getDistrictId());
+    List<StockData> stocksInOrder = district.getOrders().entrySet().stream()
+            .map(entry -> entry.getValue())
+            .sorted(Comparator.comparing(OrderData::getEntryDate))
+            .limit(20)
+            .map(order -> order.getItems().stream()
+                    .map(item -> dataRoot.getStocks().get(item.getSupplyingWarehouseRef().getId()+item.getProductRef().getId()))
+                    .collect(Collectors.toList()))
+            .flatMap(products -> products.stream())
+            .distinct()
+            .collect(Collectors.toList());
+
+    // synchronized access to read the stock infos
+    int lowStockCount = this.consistencyManager.countStockEntriesLowerThanThreshold(stocksInOrder, req.getStockThreshold());
+    return new StockLevelResponse(req, lowStockCount);
   }
 }
