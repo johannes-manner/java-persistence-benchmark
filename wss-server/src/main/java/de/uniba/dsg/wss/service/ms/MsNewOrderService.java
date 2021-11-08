@@ -39,7 +39,6 @@ public class MsNewOrderService extends NewOrderService {
   @Override
   public NewOrderResponse process(NewOrderRequest req) throws MsTransactionException {
     OrderData storedOrder = null;
-    // TODO retry manager?
     for(int i = 0 ; i < MAX_RETRIES; i++) {
       if(storedOrder == null) {
         try {

@@ -74,7 +74,6 @@ public abstract class NewOrderService
         / 100;
   }
 
-  // TODO ask why... simulating out of stock scenarios???
   protected int determineNewStockQuantity(int stockQuantity, int orderItemQuantity) {
     if (stockQuantity + 10 > orderItemQuantity) {
       return stockQuantity - orderItemQuantity;

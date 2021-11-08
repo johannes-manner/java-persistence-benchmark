@@ -6,6 +6,7 @@ import de.uniba.dsg.wss.data.transfer.representations.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +26,6 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
 public class MsResourcesController implements ResourcesController {
 
-  // TODO check if this is really a good idea
   private final MsDataRoot dataRoot;
   private final ModelMapper modelMapper;
 
@@ -33,46 +33,25 @@ public class MsResourcesController implements ResourcesController {
   public MsResourcesController(MsDataRoot dataRoot) {
 
     this.dataRoot = dataRoot;
-//      JacisStore<String, CarrierData> carrierStore,
-//      JacisStore<String, WarehouseData> warehouseStore,
-//      JacisStore<String, DistrictData> districtStore,
-//      JacisStore<String, StockData> stockStore,
-//      JacisStore<String, CustomerData> customerStore,
-//      JacisStore<String, OrderData> orderStore,
-//      JacisStore<String, EmployeeData> employeeStore,
-//      JacisStore<String, ProductData> productStore) {
-//    this.carrierStore = carrierStore;
-//    this.warehouseStore = warehouseStore;
-//    this.districtStore = districtStore;
-//    this.stockStore = stockStore;
-//    this.customerStore = customerStore;
-//    this.orderStore = orderStore;
-//    this.employeeStore = employeeStore;
-//    this.productStore = productStore;
-
     modelMapper = new ModelMapper();
   }
 
   @Override
   public Iterable<ProductRepresentation> getProducts() {
 
-    return null;
-//    return productStore
-//        .streamReadOnly()
-//        .parallel()
-//        .map(p -> modelMapper.map(p, ProductRepresentation.class))
-//        .collect(Collectors.toList());
+    return this.dataRoot.getProducts().entrySet().stream()
+            .parallel()
+            .map(p -> modelMapper.map(p, ProductRepresentation.class))
+            .collect(Collectors.toList());
   }
 
   @Override
   public ResponseEntity<EmployeeRepresentation> getEmployee(String username) {
-    return null;
-//    EmployeeData employee =
-//        employeeStore.streamReadOnly(e -> e.getUsername().equals(username)).findAny().orElse(null);
-//    if (employee == null) {
-//      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//    }
-//    return ResponseEntity.ok(modelMapper.map(employee, EmployeeRepresentation.class));
+    EmployeeData employee = this.dataRoot.getEmployees().get(username);
+    if (employee == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    return ResponseEntity.ok(modelMapper.map(employee, EmployeeRepresentation.class));
   }
 
   @Override
@@ -81,6 +60,77 @@ public class MsResourcesController implements ResourcesController {
             .map(w -> modelMapper.map(w.getValue(), WarehouseRepresentation.class))
             .collect(Collectors.toList());
   }
+
+
+  @Override
+  public ResponseEntity<List<DistrictRepresentation>> getWarehouseDistricts(String warehouseId) {
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(warehouseId);
+    if (warehouse == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    List<DistrictRepresentation> districtRepresentations = warehouse.getDistricts().entrySet()
+            .parallelStream()
+            .map(d -> modelMapper.map(d, DistrictRepresentation.class))
+            .collect(Collectors.toList());
+
+    return ResponseEntity.ok(districtRepresentations);
+  }
+
+  @Override
+  public ResponseEntity<List<StockRepresentation>> getWarehouseStocks(String warehouseId) {
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(warehouseId);
+    if (warehouse == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    List<StockRepresentation> stockRepresentations = warehouse.getStocks()
+            .parallelStream()
+            .map(s -> modelMapper.map(s, StockRepresentation.class))
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(stockRepresentations);
+  }
+
+  @Override
+  public ResponseEntity<List<CustomerRepresentation>> getDistrictCustomers(String warehouseId, String districtId) {
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(warehouseId);
+    if (warehouse == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    DistrictData district = warehouse.getDistricts().get(districtId);
+    if (district == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    List<CustomerRepresentation> customerRepresentations = district.getCustomers().parallelStream()
+            .map(c -> modelMapper.map(c, CustomerRepresentation.class))
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(customerRepresentations);
+  }
+
+  @Override
+  public ResponseEntity<List<OrderRepresentation>> getDistrictOrders(String warehouseId, String districtId) {
+    WarehouseData warehouse = this.dataRoot.getWarehouses().get(warehouseId);
+    if (warehouse == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    DistrictData district = warehouse.getDistricts().get(districtId);
+    if (district == null) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+
+    List<OrderRepresentation> orderRepresentations = district.getOrders().entrySet().parallelStream()
+            .map(o -> modelMapper.map(o, OrderRepresentation.class))
+            .collect(Collectors.toList());
+    return ResponseEntity.ok(orderRepresentations);
+  }
+
+  @Override
+  public List<CarrierRepresentation> getCarriers() {
+    return this.dataRoot.getCarriers().entrySet().parallelStream()
+            .map(c -> modelMapper.map(c, CarrierRepresentation.class))
+            .collect(Collectors.toList());
+  }
+
+  // ONLY FOR DEBUGGING
 
   @GetMapping("w")
   public RootGUI getDebugWarehouseOutput(){
@@ -208,22 +258,22 @@ public class MsResourcesController implements ResourcesController {
         this.orders = district.getOrders().entrySet().stream()
                 .map(c-> c.getValue())
                 .map(c ->
-                new OrderGUI(c.getId(),
-                        c.getDistrictRef().getId(),
-                        c.getCustomerRef().getId(),
-                        c.getCarrierRef() == null ? null : c.getCarrierRef().getId(),
-                        c.getItems().stream().map(i ->
-                                new OrderItemGUI(i.getId(),
-                                        i.getOrderRef().getId(),
-                                        i.getSupplyingWarehouseRef().getId(),
-                                        i.getProductRef().getId())).collect(Collectors.toList())
-                )).collect(Collectors.toList());
+                        new OrderGUI(c.getId(),
+                                c.getDistrictRef().getId(),
+                                c.getCustomerRef().getId(),
+                                c.getCarrierRef() == null ? null : c.getCarrierRef().getId(),
+                                c.getItems().stream().map(i ->
+                                        new OrderItemGUI(i.getId(),
+                                                i.getOrderRef().getId(),
+                                                i.getSupplyingWarehouseRef().getId(),
+                                                i.getProductRef().getId())).collect(Collectors.toList())
+                        )).collect(Collectors.toList());
         this.customers = district.getCustomers().stream().map(c -> new CustomerGUI(c.getId(),
                 c.getDistrict().getId(),
                 orders.stream().map(o -> o.id).collect(Collectors.toList()),
                 c.getPaymentRefs().stream().map(p -> new PaymentGUI(p.getId(),
                         p.getCustomerRef().getId())).collect(Collectors.toList()))).collect(Collectors.toList());
-        }
+      }
 
     }
 
@@ -260,80 +310,5 @@ public class MsResourcesController implements ResourcesController {
         stockGUIs.add(new StockGUI(stock));
       }
     }
-  }
-
-
-  @Override
-  public ResponseEntity<List<DistrictRepresentation>> getWarehouseDistricts(String warehouseId) {
-    return null;
-//    if (!warehouseStore.containsKey(warehouseId)) {
-//      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//    }
-//    List<DistrictRepresentation> districts =
-//        districtStore
-//            .streamReadOnly(d -> d.getWarehouseId().equals(warehouseId))
-//            .parallel()
-//            .map(d -> modelMapper.map(d, DistrictRepresentation.class))
-//            .collect(Collectors.toList());
-//    return ResponseEntity.ok(districts);
-  }
-
-  @Override
-  public ResponseEntity<List<StockRepresentation>> getWarehouseStocks(String warehouseId) {
-    return null;
-//    if (!warehouseStore.containsKey(warehouseId)) {
-//      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//    }
-//    List<StockRepresentation> stocks =
-//        stockStore
-//            .streamReadOnly(s -> s.getWarehouseId().equals(warehouseId))
-//            .parallel()
-//            .map(s -> modelMapper.map(s, StockRepresentation.class))
-//            .collect(Collectors.toList());
-//    return ResponseEntity.ok(stocks);
-  }
-
-  @Override
-  public ResponseEntity<List<CustomerRepresentation>> getDistrictCustomers(
-      String warehouseId, String districtId) {
-    return null;
-//    if (!warehouseStore.containsKey(warehouseId) || !districtStore.containsKey(districtId)) {
-//      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//    }
-//
-//    List<CustomerRepresentation> customers =
-//        customerStore
-//            .streamReadOnly(c -> c.getDistrictId().equals(districtId))
-//            .parallel()
-//            .map(c -> modelMapper.map(c, CustomerRepresentation.class))
-//            .collect(Collectors.toList());
-//    return ResponseEntity.ok(customers);
-  }
-
-  @Override
-  public ResponseEntity<List<OrderRepresentation>> getDistrictOrders(
-      String warehouseId, String districtId) {
-    return null;
-//    if (!warehouseStore.containsKey(warehouseId) || !districtStore.containsKey(districtId)) {
-//      return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//    }
-//
-//    List<OrderRepresentation> orders =
-//        orderStore
-//            .streamReadOnly(o -> o.getDistrictId().equals(districtId))
-//            .parallel()
-//            .map(o -> modelMapper.map(o, OrderRepresentation.class))
-//            .collect(Collectors.toList());
-//    return ResponseEntity.ok(orders);
-  }
-
-  @Override
-  public List<CarrierRepresentation> getCarriers() {
-    return null;
-//    return carrierStore
-//        .streamReadOnly()
-//        .map(c -> modelMapper.map(c, CarrierRepresentation.class))
-//        .collect(Collectors.toList());
-//  }
   }
 }
