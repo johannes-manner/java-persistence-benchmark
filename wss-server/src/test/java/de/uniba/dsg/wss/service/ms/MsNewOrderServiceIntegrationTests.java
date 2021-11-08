@@ -156,7 +156,7 @@ public class MsNewOrderServiceIntegrationTests extends MicroStreamServiceTest {
     NewOrderRequest request = getNewOrderRequest("W0","D0","C0", productToOrderList);
     this.msNewOrderService.process(request);
 
-    assertEquals(1,this.msDataRoot.getOrders().size());
+    assertEquals(21,this.msDataRoot.getOrders().size());
   }
 
 
@@ -173,7 +173,7 @@ public class MsNewOrderServiceIntegrationTests extends MicroStreamServiceTest {
     NewOrderRequest request = this.getNewOrderRequest("W0","D0","C0",productToOrderList);
     this.msNewOrderService.process(request);
 
-    assertEquals(1,this.msDataRoot.getOrders().size());
+    assertEquals(21,this.msDataRoot.getOrders().size());
   }
 
   private NewOrderRequest getNewOrderRequest(String warehouseId, String districtId, String customerId, List<ProductToOrder> productToOrderList) {

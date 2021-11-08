@@ -132,23 +132,23 @@ public class DataConsistencyManager {
       for(OrderData order : oldestOrderForEachDistrict) {
         // in cases where two terminal worker update the same oldestOrders in parallel and
         // they are both competing for the storageManager lock
-        if(order.isFulfilled()){
+        if (order.isFulfilled()) {
           continue;
-        }
-        synchronized (order.getId()) {
-          // update carrier information
-          order.updateCarrier(carrier);
-          // update fulfillment status
-          order.setAsFulfilled();
-        }
-        // compute amount of order
-        double amount = 0;
-        for(OrderItemData itemData : order.getItems()) {
-          itemData.updateDeliveryDate();
-          amount += itemData.getAmount();
         }
         CustomerData customer = order.getCustomerRef();
         synchronized (customer.getId()) {
+          synchronized (order.getId()) {
+            // update carrier information
+            order.updateCarrier(carrier);
+            // update fulfillment status
+            order.setAsFulfilled();
+          }
+          // compute amount of order
+          double amount = 0;
+          for (OrderItemData itemData : order.getItems()) {
+            itemData.updateDeliveryDate();
+            amount += itemData.getAmount();
+          }
           customer.increaseBalance(amount);
           customer.increaseDeliveryCount();
         }

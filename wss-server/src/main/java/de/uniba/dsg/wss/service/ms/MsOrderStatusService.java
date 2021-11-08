@@ -3,7 +3,6 @@ package de.uniba.dsg.wss.service.ms;
 import de.uniba.dsg.wss.data.model.ms.CustomerData;
 import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
 import de.uniba.dsg.wss.data.model.ms.OrderData;
-import de.uniba.dsg.wss.data.model.ms.OrderItemData;
 import de.uniba.dsg.wss.data.transfer.messages.OrderItemStatusResponse;
 import de.uniba.dsg.wss.data.transfer.messages.OrderStatusRequest;
 import de.uniba.dsg.wss.data.transfer.messages.OrderStatusResponse;
@@ -12,9 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
@@ -50,42 +48,28 @@ public class MsOrderStatusService extends OrderStatusService {
             .max(Comparator.comparing(OrderData::getEntryDate))
             .orElseThrow(IllegalStateException::new);
 
-    synchronized (mostRecentOrder.getId()) {
-      return toOrderStatusResponse(req, mostRecentOrder, customer, toOrderItemStatusResponse(mostRecentOrder.getItems()));
+    // synchronize the read access here, since the carrier for example could be set in the meantime to another value
+    synchronized (customer.getId()) {
+      synchronized (mostRecentOrder.getId()) {
+        return new OrderStatusResponse(mostRecentOrder.getDistrictRef().getWarehouse().getId(),
+                mostRecentOrder.getDistrictRef().getId(),
+                customer.getId(),
+                customer.getFirstName(),
+                customer.getMiddleName(),
+                customer.getLastName(),
+                customer.getBalance(),
+                mostRecentOrder.getId(),
+                mostRecentOrder.getEntryDate(),
+                mostRecentOrder.getCarrierRef() == null ? null : mostRecentOrder.getCarrierRef().getId(),
+                mostRecentOrder.getItems().stream()
+                        .map(item -> new OrderItemStatusResponse(item.getSupplyingWarehouseRef().getId(),
+                                item.getProductRef().getId(),
+                                item.getQuantity(),
+                                item.getAmount(),
+                                item.getDeliveryDate()))
+                        .collect(Collectors.toList())
+                );
+      }
     }
-  }
-
-  private static List<OrderItemStatusResponse> toOrderItemStatusResponse(List<OrderItemData> orderItems) {
-    List<OrderItemStatusResponse> responses = new ArrayList<>(orderItems.size());
-    for (OrderItemData item : orderItems) {
-      OrderItemStatusResponse res = new OrderItemStatusResponse();
-      res.setSupplyingWarehouseId(item.getSupplyingWarehouseRef().getId());
-      res.setProductId(item.getProductRef().getId());
-      res.setQuantity(item.getQuantity());
-      res.setAmount(item.getAmount());
-      res.setDeliveryDate(item.getDeliveryDate());
-      responses.add(res);
-    }
-    return responses;
-  }
-
-  private static OrderStatusResponse toOrderStatusResponse(
-      OrderStatusRequest req,
-      OrderData order,
-      CustomerData customer,
-      List<OrderItemStatusResponse> itemStatusResponses) {
-    OrderStatusResponse res = new OrderStatusResponse();
-    res.setWarehouseId(req.getWarehouseId());
-    res.setDistrictId(req.getDistrictId());
-    res.setCustomerId(customer.getId());
-    res.setCustomerFirstName(customer.getFirstName());
-    res.setCustomerMiddleName(customer.getMiddleName());
-    res.setCustomerLastName(customer.getLastName());
-    res.setCustomerBalance(customer.getBalance());
-    res.setOrderId(order.getId());
-    res.setOrderEntryDate(order.getEntryDate());
-    res.setOrderCarrierId(order.getCarrierRef() == null ? null : order.getCarrierRef().getId());
-    res.setItemStatus(itemStatusResponses);
-    return res;
   }
 }
