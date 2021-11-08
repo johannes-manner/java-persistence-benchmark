@@ -15,6 +15,14 @@ public class PaymentData extends BaseData{
   private double amount;
   private String data;
 
+  public PaymentData(CustomerData customerRef, LocalDateTime date, double amount, String data) {
+    super();
+    this.customerRef = customerRef;
+    this.date = date;
+    this.amount = amount;
+    this.data = data;
+  }
+
   public PaymentData(String id, CustomerData customerRef, LocalDateTime date, double amount, String data) {
     super(id);
     this.customerRef = customerRef;

@@ -21,11 +21,12 @@ public class CustomerData extends PersonData {
   private final String credit;
   private final double creditLimit;
   private final double discount;
-  private final double balance;
-  private final double yearToDatePayment;
-  private final int paymentCount;
   private final int deliveryCount;
-  private final String data;
+
+  private String data;
+  private double balance;
+  private double yearToDatePayment;
+  private int paymentCount;
 
   public CustomerData(String id,
                       String firstName,
@@ -59,6 +60,27 @@ public class CustomerData extends PersonData {
     this.paymentRefs = new ArrayList<>();
   }
 
+  /**
+   * Only a shallow copy!!!
+   *
+   * @param customer
+   */
+  public CustomerData(CustomerData customer) {
+    super(customer.getId(), customer.getFirstName(),customer.getMiddleName(),customer.getLastName(), customer.getAddress(), customer.getPhoneNumber(), customer.getEmail());
+    this.districtRef = customer.districtRef;
+    this.since = customer.since;
+    this.credit = customer.credit;
+    this.creditLimit = customer.creditLimit;
+    this.discount = customer.discount;
+    this.balance = customer.balance;
+    this.yearToDatePayment = customer.yearToDatePayment;
+    this.paymentCount = customer.paymentCount;
+    this.deliveryCount = customer.deliveryCount;
+    this.data = customer.data;
+    this.orderRefs = null;
+    this.paymentRefs = null;
+  }
+
   public DistrictData getDistrict() {
     return this.districtRef;
   }
@@ -79,24 +101,8 @@ public class CustomerData extends PersonData {
     return discount;
   }
 
-  public double getBalance() {
-    return balance;
-  }
-
-  public double getYearToDatePayment() {
-    return yearToDatePayment;
-  }
-
-  public int getPaymentCount() {
-    return paymentCount;
-  }
-
   public int getDeliveryCount() {
     return deliveryCount;
-  }
-
-  public String getData() {
-    return data;
   }
 
   public Map<String, OrderData> getOrderRefs(){
@@ -105,5 +111,53 @@ public class CustomerData extends PersonData {
 
   public List<PaymentData> getPaymentRefs(){
     return this.paymentRefs;
+  }
+
+  public void decreaseBalance(double amount) {
+    synchronized (this.id){
+      balance -= amount;
+    }
+  }
+
+  public double getBalance() {
+    synchronized (this.id) {
+      return balance;
+    }
+  }
+
+  public void increaseYearToBalance(double amount) {
+    synchronized (this.id) {
+      this.yearToDatePayment += amount;
+    }
+  }
+
+  public double getYearToDatePayment() {
+    synchronized (this.id) {
+      return yearToDatePayment;
+    }
+  }
+
+  public void increasePaymentCount() {
+    synchronized (this.id){
+      this.paymentCount++;
+    }
+  }
+
+  public int getPaymentCount() {
+    synchronized (this.id) {
+      return paymentCount;
+    }
+  }
+
+  public void updateData(String buildNewCustomerData) {
+    synchronized (this.id) {
+      this.data = buildNewCustomerData;
+    }
+  }
+
+  public String getData() {
+    synchronized (this.id) {
+      return data;
+    }
   }
 }

@@ -1,7 +1,5 @@
 package de.uniba.dsg.wss.data.model.ms;
 
-import com.google.common.util.concurrent.AtomicDouble;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,19 +14,18 @@ public class WarehouseData extends BaseData{
 
   private final String name;
   private final AddressData address;
-  private AtomicDouble salesTax;
-  private AtomicDouble yearToDateBalance;
+  private final double salesTax;
+  private double yearToDateBalance;
 
-  // TODO check this
   private final Map<String, DistrictData> districtRefs;
   private final List<StockData> stockRefs;
 
-  public WarehouseData(String id, String name, AddressData address){
+  public WarehouseData(String id, String name, AddressData address, double salesTax){
     super(id);
     this.name = name;
     this.address = address;
-    salesTax = new AtomicDouble(0.0);
-    yearToDateBalance = new AtomicDouble(0.0);
+    this.salesTax = salesTax;
+    yearToDateBalance = 0.0;
     districtRefs = new HashMap<>();
     stockRefs = new ArrayList<>();
   }
@@ -42,19 +39,7 @@ public class WarehouseData extends BaseData{
   }
 
   public double getSalesTax() {
-    return salesTax.doubleValue();
-  }
-
-  public boolean updateSalesTax(double oldSalesTax, double newSalesTax) {
-    return this.salesTax.compareAndSet(oldSalesTax, newSalesTax);
-  }
-
-  public double getYearToDateBalance() {
-    return yearToDateBalance.doubleValue();
-  }
-
-  public boolean updateYearToDateBalance(double oldYearToDateBalance,double newYearToDateBalance) {
-    return this.yearToDateBalance.compareAndSet(oldYearToDateBalance, newYearToDateBalance);
+      return salesTax;
   }
 
   public Map<String, DistrictData> getDistricts() {
@@ -65,4 +50,15 @@ public class WarehouseData extends BaseData{
     return this.stockRefs;
   }
 
+  public void increaseYearToBalance(double amount) {
+    synchronized (this.id){
+      this.yearToDateBalance += amount;
+    }
+  }
+
+  public double getYearToDateBalance() {
+    synchronized (this.id) {
+      return yearToDateBalance;
+    }
+  }
 }

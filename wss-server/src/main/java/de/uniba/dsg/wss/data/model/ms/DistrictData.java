@@ -19,7 +19,7 @@ public class DistrictData extends BaseData {
   private final String name;
   private final AddressData address;
   private final double salesTax;
-  private final double yearToDateBalance;
+  private double yearToDateBalance;
 
   private final List<CustomerData> customerRefs;
   private final Map<String, OrderData> orderRefs;
@@ -56,10 +56,6 @@ public class DistrictData extends BaseData {
     return salesTax;
   }
 
-  public double getYearToDateBalance() {
-    return yearToDateBalance;
-  }
-
   public List<CustomerData> getCustomers(){
     return this.customerRefs;
   }
@@ -68,4 +64,16 @@ public class DistrictData extends BaseData {
     return this.orderRefs;
   }
 
+  // MUTUAL ACCESS
+  public void increaseYearToBalance(double amount) {
+    synchronized (this.id){
+      this.yearToDateBalance += amount;
+    }
+  }
+
+  public double getYearToDateBalance() {
+    synchronized (this.id) {
+      return yearToDateBalance;
+    }
+  }
 }

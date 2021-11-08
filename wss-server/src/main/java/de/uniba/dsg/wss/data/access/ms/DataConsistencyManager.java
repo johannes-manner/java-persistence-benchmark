@@ -1,8 +1,6 @@
 package de.uniba.dsg.wss.data.access.ms;
 
-import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
-import de.uniba.dsg.wss.data.model.ms.OrderData;
-import de.uniba.dsg.wss.data.model.ms.OrderItemData;
+import de.uniba.dsg.wss.data.model.ms.*;
 import de.uniba.dsg.wss.service.ms.MsTransactionException;
 import de.uniba.dsg.wss.service.ms.StockUpdateDTO;
 import one.microstream.storage.types.StorageManager;
@@ -94,6 +92,53 @@ public class DataConsistencyManager {
     }
   }
 
+  public CustomerData storePaymentAndUpdateDependentObjects(WarehouseData warehouseData, DistrictData districtData, CustomerData customer, PaymentData payment) {
+    double amount = payment.getAmount();
+    synchronized (this.storageManger){
+      // update warehouse - increase year to balance
+      warehouseData.increaseYearToBalance(amount);
+      // update district - increase year to balance
+      districtData.increaseYearToBalance(amount);
+      // optimization acquiring the lock here
+      CustomerData copiedCustomer;
+      synchronized (customer.getId()) {
+        // add payment to customer
+        customer.getPaymentRefs().add(payment);
+        // update customer - decrease balance - req.amount
+        customer.decreaseBalance(amount);
+        // update customer - increase year to date balance + req.amount
+        customer.increaseYearToBalance(amount);
+        // update customer - update payment count + 1
+        customer.increasePaymentCount();
+        // update customer if he/she has bad credit
+        if(customerHasBadCredit(customer.getCredit())){
+          customer.updateData(buildNewCustomerData(customer.getId(),
+                  warehouseData.getId(),
+                  districtData.getId(),
+                  amount,
+                  customer.getData()));
+        }
+        // should be done within the synchronized block
+        copiedCustomer = new CustomerData(customer);
+      }
+
+      this.storageManger.storeRoot();
+      // only limited copy
+      return copiedCustomer;
+    }
+  }
+
+  // COPIED FROM PaymentService
+  protected boolean customerHasBadCredit(String customerCredit) {
+    return "BC".equals(customerCredit);
+  }
+
+  // COPIED FROM PaymentService
+  protected String buildNewCustomerData(
+          String customerId, String warehouseId, String districtId, double amount, String oldData) {
+    String newData = "" + customerId + districtId + warehouseId + amount;
+    return newData + oldData.substring(newData.length());
+  }
   public void storeRoot(){
     synchronized (this.storageManger){
       this.storageManger.storeRoot();

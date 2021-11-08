@@ -121,11 +121,10 @@ public class JpaToMsConverter {
   private Map<String, WarehouseData> convertWarehouses(List<WarehouseEntity> ws) {
     Map<String, WarehouseData> warehouses = new HashMap<>();
     for (WarehouseEntity w : ws) {
-      WarehouseData warehouse = new WarehouseData(w.getId(), w.getName(), address(w.getAddress()));
+      WarehouseData warehouse = new WarehouseData(w.getId(), w.getName(), address(w.getAddress()),w.getSalesTax());
 
       // NEW relaxing the concurrency thing here, since at the data generation step, the procedure is implemented single threaded
-      warehouse.updateSalesTax(w.getSalesTax(),w.getSalesTax());
-      warehouse.updateYearToDateBalance(w.getYearToDateBalance(),w.getYearToDateBalance());
+      warehouse.increaseYearToBalance(w.getYearToDateBalance());
       warehouses.put(warehouse.getId(), warehouse);
 
     }

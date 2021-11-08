@@ -33,7 +33,7 @@ public abstract class MicroStreamServiceTest {
     Map<String, WarehouseData> warehouses = new HashMap<>();
     for(int i = 0; i < WAREHOUSES; i++) {
       String id = "W" + i;
-      warehouses.put(id, new WarehouseData(id, id, new AddressData("", "" , "","","")));
+      warehouses.put(id, new WarehouseData(id, id, new AddressData("", "" , "","",""), 0.1));
     }
 
     Map<String, ProductData> products = new HashMap<>();
@@ -101,12 +101,17 @@ public abstract class MicroStreamServiceTest {
               "",
               0,
               0.1,
-              13.45 + i,
               0,
               0,
+              1,
               0,
               customerId+"-data"
               );
+
+      customerData.getPaymentRefs().add(new PaymentData(customerData,
+              LocalDateTime.now(),
+              0.0,
+              ""));
 
       customers.put(customerId, customerData);
       districtData.getCustomers().add(customerData);
