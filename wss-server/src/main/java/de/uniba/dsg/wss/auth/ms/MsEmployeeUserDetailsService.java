@@ -2,6 +2,8 @@ package de.uniba.dsg.wss.auth.ms;
 
 import de.uniba.dsg.wss.auth.EmployeeUserDetails;
 import de.uniba.dsg.wss.auth.EmployeeUserDetailsService;
+import de.uniba.dsg.wss.data.model.ms.EmployeeData;
+import de.uniba.dsg.wss.data.model.ms.MsDataRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,23 +19,21 @@ import org.springframework.stereotype.Service;
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
 public class MsEmployeeUserDetailsService extends EmployeeUserDetailsService {
 
-//  private final JacisStore<String, EmployeeData> employeeStore;
+  private final MsDataRoot dataRoot;
 
   @Autowired
-  public MsEmployeeUserDetailsService(){//JacisStore<String, EmployeeData> employeeStore) {
-   // this.employeeStore = employeeStore;
+  public MsEmployeeUserDetailsService(MsDataRoot dataRoot){
+    this.dataRoot = dataRoot;
   }
 
   @Override
   public EmployeeUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//    EmployeeData employee =
-//        employeeStore
-//            .streamReadOnly(e -> e.getUsername().equals(username))
-//            .parallel()
-//            .findAny()
-//            .orElseThrow(
-//                () -> new UsernameNotFoundException("Unable to find user with name " + username));
-//    return createWithDefaultRole(employee.getUsername(), employee.getPassword());
-    return null;
+
+    EmployeeData employee = dataRoot.getEmployees().entrySet().parallelStream()
+            .filter(e -> e.getValue().getUsername().equals(username))
+            .findAny()
+            .orElseThrow(
+                () -> new UsernameNotFoundException("Unable to find user with name " + username)).getValue();
+    return createWithDefaultRole(employee.getUsername(), employee.getPassword());
   }
 }
