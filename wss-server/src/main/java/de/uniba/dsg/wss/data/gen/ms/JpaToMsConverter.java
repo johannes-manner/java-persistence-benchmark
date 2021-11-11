@@ -169,8 +169,7 @@ public class JpaToMsConverter {
         StockData stockData = this.stock(stockEntity, warehouse);
         // add stock to warehouse
         warehouse.getStocks().add(stockData);
-        // put it in the overall map
-        this.stocks.put(stockData.getId(), stockData);
+        stocks.put(stockData.getId(), stockData);
       }
     }
 
