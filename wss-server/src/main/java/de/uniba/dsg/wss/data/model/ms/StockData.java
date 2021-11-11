@@ -29,8 +29,9 @@ public class StockData extends BaseData {
   private final String dist09;
   private final String dist10;
 
-  public StockData(String id, WarehouseData warehouseRef, ProductData productRef, int quantity, double yearToDateBalance, int orderCount, int remoteCount, String data, String dist01, String dist02, String dist03, String dist04, String dist05, String dist06, String dist07, String dist08, String dist09, String dist10) {
-    super(id);
+  public StockData(WarehouseData warehouseRef, ProductData productRef, int quantity, double yearToDateBalance, int orderCount, int remoteCount, String data, String dist01, String dist02, String dist03, String dist04, String dist05, String dist06, String dist07, String dist08, String dist09, String dist10) {
+    // optimization
+    super(warehouseRef.getId()+productRef.getId());
     this.warehouseRef = warehouseRef;
     this.productRef = productRef;
     this.quantity = quantity;

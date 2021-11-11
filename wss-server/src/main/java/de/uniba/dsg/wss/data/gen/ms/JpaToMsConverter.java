@@ -32,7 +32,7 @@ public class JpaToMsConverter {
   private Map<String, ProductData> products;
   private Map<String, CarrierData> carriers;
   private Map<String, WarehouseData> warehouses;
-  private List<StockData> stocks;
+  private Map<String, StockData> stocks;
   private Map<String, DistrictData> districts;
   private Map<String, EmployeeData> employees;
   private Map<String, CustomerData> customers;
@@ -160,24 +160,21 @@ public class JpaToMsConverter {
     return warehouses;
   }
 
-  private List<StockData> convertStocks(List<WarehouseEntity> ws) {
-    List<StockData> stocks = new ArrayList();
+  private Map<String, StockData> convertStocks(List<WarehouseEntity> ws) {
+    Map<String, StockData> stocks = new HashMap<>();
     for(WarehouseEntity warehouseEntity : ws) {
       WarehouseData warehouse = this.warehouses.get(warehouseEntity.getId());
-      warehouse.getStocks().addAll(
-              ws.stream()
-              .flatMap(w -> w.getStocks().stream())
-              .map(s -> this.stock(s, warehouse))
-              .collect(Collectors.toList()));
+      for(StockEntity stockEntity : warehouseEntity.getStocks()){
+        // create stock data
+        StockData stockData = this.stock(stockEntity, warehouse);
+        // add stock to warehouse
+        warehouse.getStocks().add(stockData);
+        // put it in the overall map
+        this.stocks.put(stockData.getId(), stockData);
+      }
     }
 
     LOG.debug("Converted {} stocks", stocks.size());
-    return stocks;
-  }
-
-
-
-  public List<StockData> getStocks() {
     return stocks;
   }
 
@@ -208,8 +205,7 @@ public class JpaToMsConverter {
 
 
   private StockData stock(StockEntity s, WarehouseData warehouse) {
-    StockData stock = new StockData(s.getId(),
-            warehouse,
+    StockData stock = new StockData(warehouse,
             this.products.get(s.getProduct().getId()),
             s.getQuantity(),
             s.getYearToDateBalance(),
@@ -392,11 +388,7 @@ public class JpaToMsConverter {
         a.getStreet1(), a.getStreet2(), a.getZipCode(), a.getCity(), a.getState());
   }
 
-  public Map<String, StockData> getSocksOptimized() {
-    Map<String, StockData> stocks = new HashMap<>();
-    for(StockData stock : this.stocks) {
-      stocks.put(stock.getWarehouseRef().getId() + stock.getProductRef().getId(), stock);
-    }
-    return stocks;
+  public Map<String, StockData> getStocks() {
+    return this.stocks;
   }
 }

@@ -49,8 +49,7 @@ public abstract class MicroStreamServiceTest {
           String stockId = "W" + i + "P" + j;
           WarehouseData warehouseData = warehouses.get("W" + i);
           ProductData productData = products.get("P" + j);
-          stocks.put(warehouseData.getId()+productData.getId(), new StockData(stockId,
-                  warehouseData,
+          StockData stock = new StockData(warehouseData,
                   productData,
                   i+j,
                   0,
@@ -66,7 +65,8 @@ public abstract class MicroStreamServiceTest {
                   stockId + "-7",
                   stockId + "-8",
                   stockId + "-9",
-                  stockId + "-10"));
+                  stockId + "-10");
+          stocks.put(stock.getId(), stock);
         }
       }
     }
