@@ -41,7 +41,7 @@ public class MsResourcesController implements ResourcesController {
 
     return this.dataRoot.getProducts().entrySet().stream()
             .parallel()
-            .map(p -> modelMapper.map(p, ProductRepresentation.class))
+            .map(p -> modelMapper.map(p.getValue(), ProductRepresentation.class))
             .collect(Collectors.toList());
   }
 
@@ -70,7 +70,7 @@ public class MsResourcesController implements ResourcesController {
     }
     List<DistrictRepresentation> districtRepresentations = warehouse.getDistricts().entrySet()
             .parallelStream()
-            .map(d -> modelMapper.map(d, DistrictRepresentation.class))
+            .map(d -> modelMapper.map(d.getValue(), DistrictRepresentation.class))
             .collect(Collectors.toList());
 
     return ResponseEntity.ok(districtRepresentations);
@@ -118,7 +118,7 @@ public class MsResourcesController implements ResourcesController {
     }
 
     List<OrderRepresentation> orderRepresentations = district.getOrders().entrySet().parallelStream()
-            .map(o -> modelMapper.map(o, OrderRepresentation.class))
+            .map(o -> modelMapper.map(o.getValue(), OrderRepresentation.class))
             .collect(Collectors.toList());
     return ResponseEntity.ok(orderRepresentations);
   }
@@ -126,7 +126,7 @@ public class MsResourcesController implements ResourcesController {
   @Override
   public List<CarrierRepresentation> getCarriers() {
     return this.dataRoot.getCarriers().entrySet().parallelStream()
-            .map(c -> modelMapper.map(c, CarrierRepresentation.class))
+            .map(c -> modelMapper.map(c.getValue(), CarrierRepresentation.class))
             .collect(Collectors.toList());
   }
 
