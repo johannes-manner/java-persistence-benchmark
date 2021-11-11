@@ -1,8 +1,8 @@
 package de.uniba.dsg.wss.data.transfer.messages;
 
-import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 public class NewOrderRequest {
 
@@ -17,6 +17,17 @@ public class NewOrderRequest {
 
   @NotEmpty(message = "Order items are required")
   private List<NewOrderRequestItem> items;
+
+  public NewOrderRequest(){
+
+  }
+
+  public NewOrderRequest(String warehouseId, String districtId, String customerId, List<NewOrderRequestItem> items) {
+    this.warehouseId = warehouseId;
+    this.districtId = districtId;
+    this.customerId = customerId;
+    this.items = items;
+  }
 
   public String getWarehouseId() {
     return warehouseId;

@@ -22,6 +22,12 @@ public class NewOrderRequestItem {
     quantity = line.quantity;
   }
 
+  public NewOrderRequestItem(String productId, String supplyingWarehouseId, int quantity) {
+    this.productId = productId;
+    this.supplyingWarehouseId = supplyingWarehouseId;
+    this.quantity = quantity;
+  }
+
   public String getProductId() {
     return productId;
   }
