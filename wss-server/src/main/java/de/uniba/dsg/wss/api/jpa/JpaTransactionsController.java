@@ -1,24 +1,16 @@
 package de.uniba.dsg.wss.api.jpa;
 
 import de.uniba.dsg.wss.api.TransactionsController;
-import de.uniba.dsg.wss.data.transfer.messages.DeliveryRequest;
-import de.uniba.dsg.wss.data.transfer.messages.DeliveryResponse;
-import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
-import de.uniba.dsg.wss.data.transfer.messages.NewOrderResponse;
-import de.uniba.dsg.wss.data.transfer.messages.OrderStatusRequest;
-import de.uniba.dsg.wss.data.transfer.messages.OrderStatusResponse;
-import de.uniba.dsg.wss.data.transfer.messages.PaymentRequest;
-import de.uniba.dsg.wss.data.transfer.messages.PaymentResponse;
-import de.uniba.dsg.wss.data.transfer.messages.StockLevelRequest;
-import de.uniba.dsg.wss.data.transfer.messages.StockLevelResponse;
-import de.uniba.dsg.wss.service.jpa.JpaDeliveryService;
-import de.uniba.dsg.wss.service.jpa.JpaNewOrderService;
-import de.uniba.dsg.wss.service.jpa.JpaOrderStatusService;
-import de.uniba.dsg.wss.service.jpa.JpaPaymentService;
-import de.uniba.dsg.wss.service.jpa.JpaStockLevelService;
+import de.uniba.dsg.wss.data.transfer.messages.*;
+import de.uniba.dsg.wss.service.jpa.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 /**
  * This controller provides access to the services of the server when launched in JPA persistence
@@ -50,28 +42,54 @@ public class JpaTransactionsController implements TransactionsController {
     this.stockLevelService = stockLevelService;
   }
 
-  @Override
-  public NewOrderResponse doNewOrderTransaction(NewOrderRequest req) {
-    return newOrderService.process(req);
+  private HttpHeaders generateCustomHeaders(LocalDateTime startTime, LocalDateTime endTime) {
+    HttpHeaders responseHeaders = new HttpHeaders();
+    responseHeaders.set(REQUEST_DURATION, "" + Duration.between(startTime, endTime).toMillis());
+    return responseHeaders;
   }
 
   @Override
-  public PaymentResponse doPaymentTransaction(PaymentRequest req) {
-    return paymentService.process(req);
+  public ResponseEntity<NewOrderResponse> doNewOrderTransaction(NewOrderRequest req) {
+    LocalDateTime startTime = LocalDateTime.now();
+    NewOrderResponse newOrderResponse = newOrderService.process(req);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    return ResponseEntity.ok().headers(this.generateCustomHeaders(startTime, endTime)).body(newOrderResponse);
   }
 
   @Override
-  public OrderStatusResponse doOrderStatusTransaction(OrderStatusRequest req) {
-    return orderStatusService.process(req);
+  public ResponseEntity<PaymentResponse> doPaymentTransaction(PaymentRequest req) {
+    LocalDateTime startTime = LocalDateTime.now();
+    PaymentResponse paymentResponse = paymentService.process(req);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    return ResponseEntity.ok().headers(this.generateCustomHeaders(startTime,endTime)).body(paymentResponse);
   }
 
   @Override
-  public DeliveryResponse doDeliveryTransaction(DeliveryRequest req) {
-    return deliveryService.process(req);
+  public ResponseEntity<OrderStatusResponse> doOrderStatusTransaction(OrderStatusRequest req) {
+    LocalDateTime startTime = LocalDateTime.now();
+    OrderStatusResponse orderStatusResponse = orderStatusService.process(req);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    return ResponseEntity.ok().headers(this.generateCustomHeaders(startTime,endTime)).body(orderStatusResponse);
   }
 
   @Override
-  public StockLevelResponse doStockLevelTransaction(StockLevelRequest req) {
-    return stockLevelService.process(req);
+  public ResponseEntity<DeliveryResponse> doDeliveryTransaction(DeliveryRequest req) {
+    LocalDateTime startTime = LocalDateTime.now();
+    DeliveryResponse deliveryResponse = deliveryService.process(req);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    return ResponseEntity.ok().headers(this.generateCustomHeaders(startTime,endTime)).body(deliveryResponse);
+  }
+
+  @Override
+  public ResponseEntity<StockLevelResponse> doStockLevelTransaction(StockLevelRequest req) {
+    LocalDateTime startTime = LocalDateTime.now();
+    StockLevelResponse stockLevelResponse = stockLevelService.process(req);
+    LocalDateTime endTime = LocalDateTime.now();
+
+    return ResponseEntity.ok().headers(this.generateCustomHeaders(startTime,endTime)).body(stockLevelResponse);
   }
 }
