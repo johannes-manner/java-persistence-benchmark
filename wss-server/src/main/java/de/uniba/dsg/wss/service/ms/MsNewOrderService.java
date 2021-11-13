@@ -1,6 +1,5 @@
 package de.uniba.dsg.wss.service.ms;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import de.uniba.dsg.wss.data.access.ms.DataConsistencyManager;
 import de.uniba.dsg.wss.data.model.ms.*;
 import de.uniba.dsg.wss.data.transfer.messages.NewOrderRequest;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @ConditionalOnProperty(name = "jpb.persistence.mode", havingValue = "ms")
@@ -46,7 +44,7 @@ public class MsNewOrderService extends NewOrderService {
           storedOrder = this.processOrderRequest(req);
           break;
         } catch (MsTransactionException e) {
-          Uninterruptibles.sleepUninterruptibly(RETRY_TIME, TimeUnit.MILLISECONDS);
+//          Uninterruptibles.sleepUninterruptibly(RETRY_TIME, TimeUnit.MILLISECONDS);
         }
       }
     }

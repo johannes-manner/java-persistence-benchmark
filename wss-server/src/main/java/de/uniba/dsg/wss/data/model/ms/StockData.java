@@ -8,7 +8,7 @@ package de.uniba.dsg.wss.data.model.ms;
  */
 public class StockData extends BaseData {
 
-  public static int INCREASE_QUANTITY = 10;
+  public static int INCREASE_QUANTITY = 100;
 
   private final WarehouseData warehouseRef;
   private final ProductData productRef;

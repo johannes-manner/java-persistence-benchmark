@@ -40,7 +40,7 @@ public class DataConsistencyManager {
         // update all the items, if an update fails, compensate the changes
         StockUpdateDTO stockUpdate = stockUpdates.get(i);
         if(stockUpdate.getStockData().reduceQuantity(stockUpdate.getQuantity()) == false){
-          LOG.info("Out of stock " + stockUpdate.getStockData().getId());
+//          LOG.info("Out of stock " + stockUpdate.getStockData().getId());
           break;
         } else {
           OrderItemData orderItem = new OrderItemData(order,
@@ -50,7 +50,6 @@ public class DataConsistencyManager {
                   stockUpdate.getQuantity(),
                   stockUpdate.getStockData().getQuantity(),
                   stockUpdate.getQuantity() * stockUpdate.getStockData().getProductRef().getPrice(),
-                  // TODO random dist info
                   stockUpdate.getStockData().getDist01());
           orderItemList.add(orderItem);
 //          LOG.info("Stock operation successful for stock entry " + stockUpdate.getStockData().getId());
@@ -62,7 +61,7 @@ public class DataConsistencyManager {
         for(int j = 0 ; j < i ; j++){
           StockUpdateDTO stockUpdate = stockUpdates.get(j);
           stockUpdate.getStockData().undoReduceQuantityOperation(stockUpdate.getQuantity());
-          LOG.info("Undo stock operation for stock entry " + stockUpdate.getStockData().getId());
+//          LOG.info("Undo stock operation for stock entry " + stockUpdate.getStockData().getId());
         }
         return List.of();
       }
