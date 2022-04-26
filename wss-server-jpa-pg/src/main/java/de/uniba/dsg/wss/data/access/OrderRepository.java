@@ -45,6 +45,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, String> {
 
   @Query(
       value =
+          "SELECT * "
+              + "FROM orders "
+              + "where(district_id, entrydate) IN "
+              + "      ("
+              + "      SELECT district_id, MIN(entrydate) as entrydate "
+              + "      FROM orders "
+              + "      WHERE district_id = :districtId AND fulfilled = false "
+              + "      GROUP BY district_id"
+              + "      )",
+      nativeQuery = true)
+  Optional<OrderEntity> findOldestUnfulfilledOrderOfDistrictGroupBy(String districtId);
+
+  @Query(
+      value =
           "SELECT * FROM orders WHERE district_id = :districtId ORDER BY entrydate DESC LIMIT 20",
       nativeQuery = true)
   List<OrderEntity> findTwentyMostRecentOrdersOfDistrict(String districtId);

@@ -13,10 +13,11 @@ import de.uniba.dsg.wss.data.transfer.messages.DeliveryRequest;
 import de.uniba.dsg.wss.data.transfer.messages.DeliveryResponse;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.postgresql.util.PSQLException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.annotation.Backoff;
@@ -56,30 +57,36 @@ public class JpaDeliveryService extends DeliveryService {
     List<DistrictEntity> districts = districtRepository.findByWarehouseId(req.getWarehouseId());
     CarrierEntity carrier = carrierRepository.getById(req.getCarrierId());
 
-    List<String> districtIds =
-        districts.stream().map(DistrictEntity::getId).collect(Collectors.toList());
-    List<OrderEntity> orders = orderRepository.findOldestUnfulfilledOrderOfDistricts(districtIds);
     Map<String, CustomerEntity> customers = new HashMap<>();
+    List<OrderEntity> orders = new ArrayList<>();
 
-    for (OrderEntity order : orders) {
+    for (DistrictEntity district : districts) {
 
-      double amountSum = 0;
+      Optional<OrderEntity> optOrder =
+          orderRepository.findOldestUnfulfilledOrderOfDistrictGroupBy(district.getId());
 
-      // Update fulfillment status and carrier of order
-      order.setCarrier(carrier);
-      order.setFulfilled(true);
+      if (optOrder.isPresent()) {
+        OrderEntity order = optOrder.get();
+        orders.add(order);
 
-      // Find all order items, set delivery date to now and sum amount
-      for (OrderItemEntity orderItem : order.getItems()) {
-        orderItem.setDeliveryDate(LocalDateTime.now());
-        amountSum += orderItem.getAmount();
+        double amountSum = 0;
+
+        // Update fulfillment status and carrier of order
+        order.setCarrier(carrier);
+        order.setFulfilled(true);
+
+        // Find all order items, set delivery date to now and sum amount
+        for (OrderItemEntity orderItem : order.getItems()) {
+          orderItem.setDeliveryDate(LocalDateTime.now());
+          amountSum += orderItem.getAmount();
+        }
+
+        // Update customer balance and delivery count
+        CustomerEntity customer = order.getCustomer();
+        customer.setBalance(customer.getBalance() + amountSum);
+        customer.setDeliveryCount(customer.getDeliveryCount() + 1);
+        customers.putIfAbsent(customer.getId(), customer);
       }
-
-      // Update customer balance and delivery count
-      CustomerEntity customer = order.getCustomer();
-      customer.setBalance(customer.getBalance() + amountSum);
-      customer.setDeliveryCount(customer.getDeliveryCount() + 1);
-      customers.putIfAbsent(customer.getId(), customer);
     }
 
     // save - batch processing
